@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val items = listOf("Music Guess", "Lyrics Guess", "Home", "Album Guess", "Artist Guess")
-    var selectedItem by remember { mutableStateOf(0) }
+    var selectedItem by remember { mutableIntStateOf(0) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -108,7 +108,6 @@ fun BottomNavigationBar(
                     unselectedIconColor = Color.Gray,
                     indicatorColor = Color(0xFF1ED760)
                 )
-
             )
         }
     }
@@ -137,6 +136,41 @@ fun SpotifightTitle(modifier: Modifier = Modifier) {
                 .size(32.dp)
                 .padding(end = 8.dp),
             contentScale = ContentScale.Fit
+        )
+    }
+}
+
+@Composable
+fun LyricsDisplay(lyricsSnippet: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "...",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "\"$lyricsSnippet\"",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "...",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = Color.White
         )
     }
 }
@@ -264,7 +298,8 @@ fun MusicGuessScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun LyricsGuessScreen(modifier: Modifier = Modifier) {
-    val correctSongName = "TO REPLACE" // TODO REMOVE
+    val correctSongName = "Doucement" // TODO REMOVE
+    val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
 
     Column(
         modifier = modifier
@@ -275,7 +310,7 @@ fun LyricsGuessScreen(modifier: Modifier = Modifier) {
     ) {
         SpotifightTitle()
         Spacer(modifier = Modifier.height(16.dp))
-        // TODO: lyrics here
+        LyricsDisplay(lyricsSnippet = lyricsSnippet)
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(correctGuessName=correctSongName)
     }
