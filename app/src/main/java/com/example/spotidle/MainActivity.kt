@@ -32,13 +32,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Phone // used for music guess
-import androidx.compose.material.icons.filled.Star // used for lyrics guess
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.AddCircle // used for album guess
-import androidx.compose.material.icons.filled.Person // used for artist guess
+import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Close // used for paause button
+import androidx.compose.material.icons.filled.Pause // used for pause button
 import android.media.MediaPlayer
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalContext
@@ -91,10 +91,10 @@ fun BottomNavigationBar(
     ) {
         items.forEachIndexed { index, item ->
             val icon = when (index) {
-                0 -> Icons.Default.Phone // Music Guess icon
-                1 -> Icons.Default.Star // Lyrics Guess icon
+                0 -> Icons.Default.MusicNote // Music Guess icon
+                1 -> Icons.Default.Lyrics // Lyrics Guess icon
                 2 -> Icons.Default.Home // Home icon
-                3 -> Icons.Default.AddCircle // Album Guess icon
+                3 -> Icons.Default.Album // Album Guess icon
                 4 -> Icons.Default.Person // Artist Guess icon
                 else -> Icons.Default.Home
             }
@@ -287,7 +287,7 @@ fun MusicGuessScreen(modifier: Modifier = Modifier) {
                 .size(64.dp)
         ) {
             Icon(
-                imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow, // TODO: change icon to pause icon
+                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, // TODO: change icon to pause icon
                 contentDescription = if (isPlaying) "Pause" else "Play"
             )
         }
