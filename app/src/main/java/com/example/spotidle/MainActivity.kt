@@ -15,17 +15,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Lyrics
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Pause
-import android.media.MediaPlayer
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.platform.LocalContext
 import com.example.spotidle.ui.guess.AlbumGuessScreen
 import com.example.spotidle.ui.guess.ArtistGuessScreen
 import com.example.spotidle.ui.guess.LyricsGuessScreen
@@ -51,13 +40,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-//fun getAuthenticationRequest(type: AuthenticationResponse.Type): AuthenticationRequest {
-//    return AuthenticationRequest.Builder(CLIENT_ID, type, REDIRECT_URI)
-//        .setShowDialog(false)
-//        .setScopes(arrayOf("user-read-email"))
-//        .build()
-//}
 
 @Composable
 fun MainScreen() {
