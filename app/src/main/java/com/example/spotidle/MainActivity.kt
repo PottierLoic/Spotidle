@@ -38,10 +38,17 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Pause // used for pause button
+import androidx.compose.material.icons.filled.Pause
 import android.media.MediaPlayer
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalContext
+//import com.spotify.sdk.android.authentication.AuthenticationClient
+//import com.spotify.sdk.android.authentication.AuthenticationRequest
+//import com.spotify.sdk.android.authentication.AuthenticationResponse
+
+val CLIENT_ID = "71cb703af64d40e889f5a274b3986da7"
+val AUTH_TOKEN_REQUEST_CODE = 0x10
+val REDIRECT_URI = "spotifight://"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +60,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+//fun getAuthenticationRequest(type: AuthenticationResponse.Type): AuthenticationRequest {
+//    return AuthenticationRequest.Builder(CLIENT_ID, type, REDIRECT_URI)
+//        .setShowDialog(false)
+//        .setScopes(arrayOf("user-read-email"))
+//        .build()
+//}
 
 @Composable
 fun MainScreen() {
@@ -326,7 +340,25 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         SpotifightTitle()
-        // TODO: home screen content here
+        Button(onClick = {
+//            val request = getAuthenticationRequest(AuthenticationResponse.Type.TOKEN)
+//            AuthenticationClient.openLoginActivity(
+//                this,
+//                AUTH_TOKEN_REQUEST_CODE,
+//                request
+//            )
+        }) {
+            Image(
+                painter = painterResource(id = R.drawable.spotify_logo),
+                contentDescription = "Spotify Logo",
+                modifier = Modifier
+                    .size(32.dp)
+                    .padding(end = 8.dp),
+                contentScale = ContentScale.Fit
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Text("Log in with spotify")
+        }
     }
 }
 

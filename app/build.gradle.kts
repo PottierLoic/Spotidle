@@ -18,6 +18,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        manifestPlaceholders["redirectSchemeName"] = "spotifight"
+        manifestPlaceholders["redirectHostName"] = "login"
     }
 
     buildTypes {
@@ -60,8 +62,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.compose.material:material-icons-extended:1.4.3")
-    //implementation("com.spotify.android:auth:1.1.0")
-    //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.3")
+    implementation(libs.auth.v211)
+    implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
