@@ -20,13 +20,83 @@ import com.example.spotidle.ui.guess.MusicGuessScreen
 import com.example.spotidle.ui.home.HomeScreen
 import com.example.spotidle.ui.home.components.BottomNavigationBar
 import com.example.spotidle.ui.theme.SpotidleTheme
+import com.spotify.android.appremote.api.ConnectionParams;
+import com.spotify.android.appremote.api.Connector;
+import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.sdk.android.auth.AuthorizationClient
+import com.spotify.sdk.android.auth.AuthorizationResponse
+import com.spotify.sdk.android.auth.AuthorizationRequest
+import android.util.Log
+import android.content.Intent
+
+private const val CLIENT_ID = "fe1e042e58414bbfbac7e10a48dde4db"
+private const val REDIRECT_URI = "spotidle://callback"
+private const val REQUEST_CODE = 1337
 
 class MainActivity : ComponentActivity() {
+    private var spotifyAppRemote: SpotifyAppRemote? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             SpotidleTheme {
                 MainScreen()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val builder =
+            AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
+        builder.setScopes(arrayOf("user-read-playback-state", "user-modify-playback-state"))
+        val request = builder.build()
+        AuthorizationClient.openLoginActivity(this, REQUEST_CODE, request)
+
+        val connectionParams = ConnectionParams.Builder(CLIENT_ID)
+            .setRedirectUri(REDIRECT_URI)
+            .showAuthView(true)
+            .build()
+
+        SpotifyAppRemote.connect(this, connectionParams, object : Connector.ConnectionListener {
+            override fun onConnected(spotifyAppRemote: SpotifyAppRemote) {
+                this@MainActivity.spotifyAppRemote = spotifyAppRemote
+                Log.d("Spotify", "Connected to Spotify App Remote")
+            }
+
+            override fun onFailure(throwable: Throwable) {
+                Log.e("Spotify", "Failed to connect to Spotify App Remote: ${throwable.message}")
+            }
+        })
+    }
+
+    override fun onStop() {
+        super.onStop()
+        spotifyAppRemote?.let {
+            SpotifyAppRemote.disconnect(it)
+            Log.d("Spotify", "Disconnected from Spotify App Remote")
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+        if (requestCode == REQUEST_CODE) {
+            val response = AuthorizationClient.getResponse(resultCode, intent)
+            when (response.type) {
+                AuthorizationResponse.Type.TOKEN -> {
+                    // Handle successful response
+                    Log.d("Spotify", "Authorization successful, token: ${response.accessToken}")
+                }
+
+                AuthorizationResponse.Type.ERROR -> {
+                    // Handle error response
+                    Log.e("Spotify", "Authorization error: ${response.error}")
+                }
+
+                else -> {
+                    // Handle other cases
+                    Log.d("Spotify", "Authorization flow was cancelled or not completed.")
+                }
             }
         }
     }
@@ -48,11 +118,10 @@ fun MainScreen() {
             )
         }
     ) { innerPadding ->
-        val screenMod: Modifier = Modifier.padding(innerPadding);
+        val screenMod: Modifier = Modifier.padding(innerPadding)
 
         Image(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             painter = painterResource(R.drawable.thumbs_up),
             contentDescription = "background_image",
             contentScale = ContentScale.FillBounds
