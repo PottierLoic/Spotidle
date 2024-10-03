@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(files("libs/spotify-app-remote-release-0.8.0.aar"))
     implementation(files("libs/spotify-auth-release-2.1.0.aar"))
+    implementation(libs.okhttp)
     implementation(libs.gson)
     implementation(libs.okhttp)
     testImplementation(libs.junit)
@@ -76,5 +77,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-//    runtimeOnly(libs.jackson.annotations)
+    runtimeOnly(libs.jackson.annotations)
 }
