@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.spotidle.ui.guess.AlbumGuessScreen
 import com.example.spotidle.ui.guess.ArtistGuessScreen
 import com.example.spotidle.ui.guess.LyricsGuessScreen
@@ -20,18 +19,28 @@ import com.example.spotidle.ui.guess.MusicGuessScreen
 import com.example.spotidle.ui.home.HomeScreen
 import com.example.spotidle.ui.home.components.BottomNavigationBar
 import com.example.spotidle.ui.theme.SpotidleTheme
-import com.spotify.android.appremote.api.ConnectionParams;
-import com.spotify.android.appremote.api.Connector;
-import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.android.appremote.api.ConnectionParams
+import com.spotify.android.appremote.api.Connector
+import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationResponse
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import android.util.Log
 import android.content.Intent
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 
 private const val CLIENT_ID = "fe1e042e58414bbfbac7e10a48dde4db"
 private const val REDIRECT_URI = "spotidle://callback"
 private const val REQUEST_CODE = 1337
+private var TOKEN = ""
+
+interface TracksCallback {
+    fun onTracksReceived(tracks: MutableList<String>)
+}
 
 class MainActivity : ComponentActivity() {
     private var spotifyAppRemote: SpotifyAppRemote? = null
@@ -45,25 +54,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun connectSpotify() {
+    private fun connectSpotify() {
         super.onStart()
         val builder =
             AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-        builder.setScopes(arrayOf("user-read-playback-state", "user-modify-playback-state"))
+        builder.setScopes(arrayOf("user-library-read", "user-read-playback-state", "user-modify-playback-state", "user-read-private", "user-read-email"))
         val request = builder.build()
         AuthorizationClient.openLoginActivity(this, REQUEST_CODE, request)
-
         val connectionParams = ConnectionParams.Builder(CLIENT_ID)
             .setRedirectUri(REDIRECT_URI)
             .showAuthView(true)
             .build()
-
         SpotifyAppRemote.connect(this, connectionParams, object : Connector.ConnectionListener {
             override fun onConnected(spotifyAppRemote: SpotifyAppRemote) {
                 this@MainActivity.spotifyAppRemote = spotifyAppRemote
                 Log.d("Spotify", "Connected to Spotify App Remote")
             }
-
             override fun onFailure(throwable: Throwable) {
                 Log.e("Spotify", "Failed to connect to Spotify App Remote: ${throwable.message}")
             }
@@ -78,29 +84,100 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
         if (requestCode == REQUEST_CODE) {
             val response = AuthorizationClient.getResponse(resultCode, intent)
             when (response.type) {
                 AuthorizationResponse.Type.TOKEN -> {
-                    // Handle successful response
-                    Log.d("Spotify", "Authorization successful, token: ${response.accessToken}")
+                    TOKEN = response.accessToken
+                    Log.d("Spotify", "Authorization successful, token: $TOKEN")
+//                    fetchUserProfile(TOKEN)
+                    fetchLikedTracks(TOKEN, object : TracksCallback {
+                        override fun onTracksReceived(tracks: MutableList<String>) {
+                            Log.d("Spotify", "Tracks: ${tracks.joinToString(", ")}")
+                        }
+                    })
                 }
-
                 AuthorizationResponse.Type.ERROR -> {
-                    // Handle error response
                     Log.e("Spotify", "Authorization error: ${response.error}")
                 }
-
                 else -> {
-                    // Handle other cases
                     Log.d("Spotify", "Authorization flow was cancelled or not completed.")
                 }
             }
         }
     }
 }
+
+private fun fetchLikedTracks(accessToken: String, callback: TracksCallback) {
+    val url = "https://api.spotify.com/v1/me/tracks"
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url(url)
+        .addHeader("Authorization", "Bearer $accessToken")
+        .build()
+    client.newCall(request).enqueue(object : okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: IOException) {
+            Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
+            callback.onTracksReceived(mutableListOf())
+        }
+        override fun onResponse(call: okhttp3.Call, response: Response) {
+            val likedTracks = mutableListOf<String>()
+            if (!response.isSuccessful) {
+                Log.e("Spotify", "Error fetching liked tracks: ${response.message}")
+                callback.onTracksReceived(likedTracks)
+                return
+            }
+            val jsonData = response.body?.string()
+            if (jsonData != null) {
+                val jsonObject = JSONObject(jsonData)
+                val itemsArray = jsonObject.getJSONArray("items")
+                for (i in 0 until itemsArray.length()) {
+                    val trackObject = itemsArray.getJSONObject(i).getJSONObject("track")
+                    val trackName = trackObject.getString("name")
+                    likedTracks.add(trackName)
+                }
+            }
+            callback.onTracksReceived(likedTracks)
+        }
+    })
+}
+
+// kind of template for fetching only one item
+
+//private fun fetchUserProfile(accessToken: String) {
+//    val url = "https://api.spotify.com/v1/me"
+//    val client = OkHttpClient()
+//    val request = Request.Builder()
+//        .url(url)
+//        .addHeader("Authorization", "Bearer $accessToken")
+//        .build()
+//    client.newCall(request).enqueue(object : okhttp3.Callback {
+//        override fun onFailure(call: okhttp3.Call, e: IOException) {
+//            Log.e("Spotify", "Failed to fetch user profile: ${e.message}")
+//        }
+//        override fun onResponse(call: okhttp3.Call, response: Response) {
+//            if (!response.isSuccessful) {
+//                Log.e("Spotify", "Error fetching user profile: ${response.message}")
+//                return
+//            }
+//            val jsonData = response.body?.string()
+//            if (jsonData != null) {
+//                val jsonObject = JSONObject(jsonData)
+//                val displayName = jsonObject.getString("display_name")
+//                val email = if (jsonObject.has("email")) {
+//                    jsonObject.getString("email")
+//                } else {
+//                    "Email not available"
+//                }
+//                Log.d("Spotify", "User Profile: Name = $displayName, Email = $email")
+//            }
+//        }
+//    })
+//}
+
 
 @Composable
 fun MainScreen(spotifyLogin: () -> Unit) {
