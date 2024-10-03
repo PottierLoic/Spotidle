@@ -13,13 +13,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.example.spotidle.MainActivity
+import androidx.compose.ui.unit.sp
 import com.example.spotidle.R
 import com.example.spotidle.ui.home.components.SpotifightTitle
 
+
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, spotifyLogin: () -> Unit) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    spotifyLogin: () -> Unit,
+    isSpotifyConnected: Boolean,
+    username: String
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -28,17 +39,41 @@ fun HomeScreen(modifier: Modifier = Modifier, spotifyLogin: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         SpotifightTitle()
-        Button(onClick = { spotifyLogin() }) {
-            Image(
-                painter = painterResource(id = R.drawable.spotify_logo),
-                contentDescription = "Spotify Logo",
-                modifier = Modifier
-                    .size(32.dp)
-                    .padding(end = 8.dp),
-                contentScale = ContentScale.Fit
+        Spacer(modifier = Modifier.size(140.dp))
+        if (!isSpotifyConnected) {
+            Text(text = "Log in with spotify to start guessing !", color = Color.White)
+            Button(
+                onClick = { spotifyLogin() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1ED760),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.spotify_logo_white),
+                    contentDescription = "Spotify Logo",
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(end = 8.dp),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.size(12.dp))
+                Text("Log in with spotify")
+            }
+        } else {
+            Text(
+                text = buildAnnotatedString {
+                    append("Hello, ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+                        append(username)
+                    }
+                    append(" !")
+                },
+                color = Color.White,
+                fontSize = 24.sp,
+                modifier = Modifier.padding(top = 16.dp)
             )
-            Spacer(modifier = Modifier.size(12.dp))
-            Text("Log in with spotify")
         }
     }
 }

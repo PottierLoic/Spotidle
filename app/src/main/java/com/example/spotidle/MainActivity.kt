@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.spotidle.ui.guess.AlbumGuessScreen
 import com.example.spotidle.ui.guess.ArtistGuessScreen
 import com.example.spotidle.ui.guess.LyricsGuessScreen
@@ -28,6 +27,10 @@ import com.spotify.sdk.android.auth.AuthorizationResponse
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import android.util.Log
 import android.content.Intent
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import kotlinx.coroutines.*
 
 private const val CLIENT_ID = "fe1e042e58414bbfbac7e10a48dde4db"
 private const val REDIRECT_URI = "spotidle://callback"
@@ -35,17 +38,23 @@ private const val REQUEST_CODE = 1337
 
 class MainActivity : ComponentActivity() {
     private var spotifyAppRemote: SpotifyAppRemote? = null
+    private var isSpotifyConnected = mutableStateOf(false)
+    private var username = mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             SpotidleTheme {
-                MainScreen(spotifyLogin = { connectSpotify() })
+                MainScreen(
+                    spotifyLogin = { connectSpotify() },
+                    isSpotifyConnected = isSpotifyConnected.value,
+                    username = username.value
+                )
             }
         }
     }
 
-    fun connectSpotify() {
+    private fun connectSpotify() {
         super.onStart()
         val builder =
             AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
@@ -86,6 +95,8 @@ class MainActivity : ComponentActivity() {
                 AuthorizationResponse.Type.TOKEN -> {
                     // Handle successful response
                     Log.d("Spotify", "Authorization successful, token: ${response.accessToken}")
+                    isSpotifyConnected.value = true
+                    getUserProfile(response.accessToken)
                 }
 
                 AuthorizationResponse.Type.ERROR -> {
@@ -100,10 +111,30 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun getUserProfile(token: String) {
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url("https://api.spotify.com/v1/me")
+            .addHeader("Authorization", "Bearer $token")
+            .build()
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = client.newCall(request).execute()
+            val jsonResponse = JSONObject(response.body?.string() ?: "")
+            val displayName = jsonResponse.getString("display_name")
+            withContext(Dispatchers.Main) {
+                username.value = displayName
+            }
+        }
+    }
 }
 
 @Composable
-fun MainScreen(spotifyLogin: () -> Unit) {
+fun MainScreen(
+    spotifyLogin: () -> Unit,
+    isSpotifyConnected: Boolean,
+    username: String
+) {
     val items = listOf("Music Guess", "Lyrics Guess", "Home", "Album Guess", "Artist Guess")
     var selectedItem by remember { mutableIntStateOf(0) }
 
@@ -128,7 +159,12 @@ fun MainScreen(spotifyLogin: () -> Unit) {
         )
 
         when (selectedItem) {
-            0 -> HomeScreen(modifier = screenMod, spotifyLogin = { spotifyLogin() })
+            0 -> HomeScreen(
+                modifier = screenMod,
+                spotifyLogin = { spotifyLogin() },
+                isSpotifyConnected = isSpotifyConnected,
+                username = username
+            )
             1 -> LyricsGuessScreen(modifier = screenMod)
             2 -> MusicGuessScreen(modifier = screenMod)
             3 -> AlbumGuessScreen(modifier = screenMod)
