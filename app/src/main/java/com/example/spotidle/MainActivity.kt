@@ -40,12 +40,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SpotidleTheme {
-                MainScreen()
+                MainScreen(spotifyLogin = { connectSpotify() })
             }
         }
     }
 
-    override fun onStart() {
+    fun connectSpotify() {
         super.onStart()
         val builder =
             AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(spotifyLogin: () -> Unit) {
     val items = listOf("Music Guess", "Lyrics Guess", "Home", "Album Guess", "Artist Guess")
     var selectedItem by remember { mutableIntStateOf(0) }
 
@@ -128,19 +128,11 @@ fun MainScreen() {
         )
 
         when (selectedItem) {
-            0 -> HomeScreen(modifier = screenMod)
+            0 -> HomeScreen(modifier = screenMod, spotifyLogin = { spotifyLogin() })
             1 -> LyricsGuessScreen(modifier = screenMod)
             2 -> MusicGuessScreen(modifier = screenMod)
             3 -> AlbumGuessScreen(modifier = screenMod)
             4 -> ArtistGuessScreen(modifier = screenMod)
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    SpotidleTheme {
-        MainScreen()
     }
 }
