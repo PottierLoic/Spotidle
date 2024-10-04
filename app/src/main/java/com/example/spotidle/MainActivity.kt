@@ -3,21 +3,13 @@ package com.example.spotidle
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import com.example.spotidle.ui.connectPage.ConnectPage
 import com.example.spotidle.ui.guess.AlbumGuessScreen
 import com.example.spotidle.ui.guess.ArtistGuessScreen
 import com.example.spotidle.ui.guess.LyricsGuessScreen
 import com.example.spotidle.ui.guess.MusicGuessScreen
 import com.example.spotidle.ui.home.HomeScreen
-import com.example.spotidle.ui.home.components.BottomNavigationBar
 import com.example.spotidle.ui.theme.SpotidleTheme
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
@@ -27,14 +19,27 @@ import com.spotify.sdk.android.auth.AuthorizationResponse
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import android.util.Log
 import android.content.Intent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
 import kotlinx.coroutines.*
+import org.json.JSONException
 import java.io.IOException
 
-private const val CLIENT_ID = "fe1e042e58414bbfbac7e10a48dde4db"
+private const val CLIENT_ID = "71cb703af64d40e889f5a274b3986da7"
 private const val REDIRECT_URI = "spotidle://callback"
 private const val REQUEST_CODE = 1337
 private var TOKEN = ""
@@ -54,6 +59,7 @@ class MainActivity : ComponentActivity() {
             SpotidleTheme {
                 MainScreen(
                     spotifyLogin = { connectSpotify() },
+                    disconnectSpotify = { disconnectSpotify() },
                     isSpotifyConnected = isSpotifyConnected.value,
                     username = username.value
                 )
@@ -81,6 +87,15 @@ class MainActivity : ComponentActivity() {
                 Log.e("Spotify", "Failed to connect to Spotify App Remote: ${throwable.message}")
             }
         })
+    }
+
+    private fun disconnectSpotify() {
+        spotifyAppRemote?.let {
+            SpotifyAppRemote.disconnect(it)
+            Log.d("Spotify", "Disconnected from Spotify App Remote")
+            isSpotifyConnected.value = false
+        }
+        isSpotifyConnected.value = false
     }
 
     override fun onStop() {
@@ -127,10 +142,17 @@ class MainActivity : ComponentActivity() {
             .build()
         CoroutineScope(Dispatchers.IO).launch {
             val response = client.newCall(request).execute()
-            val jsonResponse = JSONObject(response.body?.string() ?: "")
-            val displayName = jsonResponse.getString("display_name")
-            withContext(Dispatchers.Main) {
-                username.value = displayName
+            val responseBody = response.body?.string() ?: ""
+
+            try {
+                val jsonResponse = JSONObject(responseBody)
+                val displayName = jsonResponse.getString("display_name")
+                withContext(Dispatchers.Main) {
+                    username.value = displayName
+                }
+            } catch (e: JSONException) {
+                Log.e("Spotify", "Failed to parse user profile: ${e.message}")
+                Log.e("Spotify", "Response was: $responseBody")
             }
         }
     }
@@ -207,43 +229,62 @@ private fun fetchLikedTracks(accessToken: String, callback: TracksCallback) {
 @Composable
 fun MainScreen(
     spotifyLogin: () -> Unit,
+    disconnectSpotify: () -> Unit,
     isSpotifyConnected: Boolean,
     username: String
 ) {
-    val items = listOf("Music Guess", "Lyrics Guess", "Home", "Album Guess", "Artist Guess")
-    var selectedItem by remember { mutableIntStateOf(0) }
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFF191414),
-        bottomBar = {
-            BottomNavigationBar(
-                items = items,
-                selectedItem = selectedItem,
-                onItemSelected = { selectedItem = it }
-            )
-        }
-    ) { innerPadding ->
-        val screenMod: Modifier = Modifier.padding(innerPadding)
-
+    val navController = rememberNavController()
+    if(!isSpotifyConnected) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF1ED760))
+        )
+        Image(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.2f),
+            painter = painterResource(R.drawable.thumbs_up),
+            contentDescription = "background_image",
+            contentScale = ContentScale.FillBounds,
+        )
+        ConnectPage(spotifyLogin = { spotifyLogin() } )
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF191414))
+        )
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(R.drawable.thumbs_up),
             contentDescription = "background_image",
             contentScale = ContentScale.FillBounds
         )
-
-        when (selectedItem) {
-            0 -> HomeScreen(
-                modifier = screenMod,
-                spotifyLogin = { spotifyLogin() },
-                isSpotifyConnected = isSpotifyConnected,
-                username = username
-            )
-            1 -> LyricsGuessScreen(modifier = screenMod)
-            2 -> MusicGuessScreen(modifier = screenMod)
-            3 -> AlbumGuessScreen(modifier = screenMod)
-            4 -> ArtistGuessScreen(modifier = screenMod)
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.fillMaxSize()
+        ) {
+            composable("home") {
+                HomeScreen(
+                    username = username,
+                    navController = navController,
+                    disconnectSpotify = disconnectSpotify
+                )
+            }
+            composable("lyricsGuess") {
+                LyricsGuessScreen(navController = navController)
+            }
+            composable("musicGuess") {
+                MusicGuessScreen(navController = navController)
+            }
+            composable("albumGuess") {
+                AlbumGuessScreen(navController = navController)
+            }
+            composable("artistGuess") {
+                ArtistGuessScreen(navController = navController)
+            }
         }
     }
 }

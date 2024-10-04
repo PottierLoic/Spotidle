@@ -2,12 +2,9 @@ package com.example.spotidle.ui.guess
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,31 +21,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.spotidle.R
 import com.example.spotidle.ui.guess.components.GuessSection
-import com.example.spotidle.ui.home.components.SpotifightTitle
+import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
 @Composable
-fun AlbumGuessScreen(modifier: Modifier = Modifier) {
+fun AlbumGuessScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     val context = LocalContext.current
     val correctAlbumName = "Quand la musique est bonne" // TODO REMOVE
     var blurAmount by remember { mutableFloatStateOf(25f) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        SpotifightTitle()
-        Spacer(modifier = Modifier.height(16.dp))
-
+    SpotifightScaffold(navController = navController) {
         Box(
             modifier = Modifier
                 .size((context.resources.displayMetrics.widthPixels / 4).dp)
                 .aspectRatio(1f)
-                .background(Color(0xFF1ED760))
+                .background(Color.Transparent)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.jjgalbumcover),
@@ -60,9 +52,7 @@ fun AlbumGuessScreen(modifier: Modifier = Modifier) {
                 contentScale = ContentScale.Crop
             )
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         GuessSection(
             correctGuessName = correctAlbumName,
             onGuessSubmit = { guess ->

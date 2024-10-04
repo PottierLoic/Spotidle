@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,34 +20,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.spotidle.ui.guess.components.GuessSection
-import com.example.spotidle.ui.home.components.SpotifightTitle
+import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
 @Composable
-fun LyricsGuessScreen(modifier: Modifier = Modifier) {
+fun LyricsGuessScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     val context = LocalContext.current
     val correctSongName = "Doucement" // TODO REMOVE
     val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        SpotifightTitle()
-        Spacer(modifier = Modifier.height(16.dp))
+    SpotifightScaffold(navController = navController) {
         Box(
             modifier = Modifier
                 .size((context.resources.displayMetrics.widthPixels / 4).dp)
                 .aspectRatio(1f)
                 .background(Color(0xFF1ED760))
         ) {
-            LyricsDisplay(lyricsSnippet = lyricsSnippet, modifier = Modifier.align(Alignment.Center))
+            LyricsDisplay(
+                lyricsSnippet = lyricsSnippet,
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        GuessSection(correctGuessName=correctSongName)
+        GuessSection(correctGuessName = correctSongName)
     }
 }
 
