@@ -55,12 +55,23 @@ fun HomeScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Speaker,
-                        contentDescription = "Music Guess",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Speaker,
+                            contentDescription = "Music Guess",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "Sound",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
                 Button(
                     onClick = { navController.navigate("lyricsGuess") },
@@ -69,12 +80,23 @@ fun HomeScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Mic,
-                        contentDescription = "Lyrics Guess",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Mic,
+                            contentDescription = "Lyrics Guess",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "Lyrics",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.size(16.dp))
@@ -88,12 +110,23 @@ fun HomeScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Album,
-                        contentDescription = "Album Guess",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Album,
+                            contentDescription = "Album Guess",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "Album",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
                 Button(
                     onClick = { navController.navigate("artistGuess") },
@@ -102,19 +135,30 @@ fun HomeScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Man,
-                        contentDescription = "Artist Guess",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Man,
+                            contentDescription = "Artist Guess",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "Artist",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.size(100.dp))
             Button(
                 onClick = { disconnectSpotify() },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1DB954),
+                    containerColor = Color(0xFFbf4e4e),
                     contentColor = Color.White
                 ),
                 modifier = Modifier.padding(8.dp)
