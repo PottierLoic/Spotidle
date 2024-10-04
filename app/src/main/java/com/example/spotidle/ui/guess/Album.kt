@@ -19,20 +19,22 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.spotidle.R
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Scale
+import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
 @Composable
 fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    track: TrackInfo
 ) {
     val context = LocalContext.current
-    val correctAlbumName = "Quand la musique est bonne" // TODO REMOVE
     var blurAmount by remember { mutableFloatStateOf(25f) }
 
     SpotifightScaffold(navController = navController) {
@@ -43,7 +45,13 @@ fun AlbumGuessScreen(
                 .background(Color.Transparent)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.jjgalbumcover),
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current).data(data = track.albumCoverUrl)
+                        .apply(block = fun ImageRequest.Builder.() {
+                            crossfade(true)
+                            scale(Scale.FILL)
+                        }).build()
+                ),
                 contentDescription = "Album Cover",
                 modifier = Modifier
                     .blur(radius = blurAmount.dp)
@@ -54,9 +62,9 @@ fun AlbumGuessScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
-            correctGuessName = correctAlbumName,
+            correctGuessName = track.album,
             onGuessSubmit = { guess ->
-                if (guess.equals(correctAlbumName, ignoreCase = true)) {
+                if (guess.equals(track.album, ignoreCase = true)) {
                     blurAmount = 0f
                 } else {
                     blurAmount = (blurAmount - 5f).coerceAtLeast(0f)

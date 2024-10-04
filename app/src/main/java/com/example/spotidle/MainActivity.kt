@@ -44,14 +44,38 @@ private const val REDIRECT_URI = "spotidle://callback"
 private const val REQUEST_CODE = 1337
 private var TOKEN = ""
 
+data class TrackInfo(
+    val name: String,
+    val artist: String,
+    val album: String,
+    val albumCoverUrl: String,
+    val previewUrl: String?
+)
+
+data class ArtistData(
+    val profilePicture: String?,
+    val mostPopularSong: String?,
+)
+
 interface TracksCallback {
-    fun onTracksReceived(tracks: MutableList<String>)
+    fun onTracksReceived(tracks: MutableList<TrackInfo>)
+}
+
+interface ArtistDataCallback {
+    fun onArtistDataReceived(artistData: ArtistData?)
 }
 
 class MainActivity : ComponentActivity() {
     private var spotifyAppRemote: SpotifyAppRemote? = null
     private var isSpotifyConnected = mutableStateOf(false)
     private var username = mutableStateOf("")
+
+    private var musicTrack by mutableStateOf<TrackInfo?>(null)
+    private var lyricsTrack by mutableStateOf<TrackInfo?>(null)
+    private var albumTrack by mutableStateOf<TrackInfo?>(null)
+    private var artistTrack by mutableStateOf<TrackInfo?>(null)
+
+    private var artistData by mutableStateOf<ArtistData?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +85,12 @@ class MainActivity : ComponentActivity() {
                     spotifyLogin = { connectSpotify() },
                     disconnectSpotify = { disconnectSpotify() },
                     isSpotifyConnected = isSpotifyConnected.value,
-                    username = username.value
+                    username = username.value,
+                    musicTrack = musicTrack,
+                    lyricsTrack = lyricsTrack,
+                    albumTrack = albumTrack,
+                    artistTrack = artistTrack,
+                    artistData = artistData
                 )
             }
         }
@@ -106,6 +135,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun selectRandomTracks(tracks: MutableList<TrackInfo>, numberOfTracks: Int = 4): List<TrackInfo> {
+        return tracks.shuffled().take(numberOfTracks)
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
@@ -118,11 +151,32 @@ class MainActivity : ComponentActivity() {
 //                    fetchUserProfile(TOKEN)
                     isSpotifyConnected.value = true
                     fetchLikedTracks(TOKEN, object : TracksCallback {
-                        override fun onTracksReceived(tracks: MutableList<String>) {
-                            Log.d("Spotify", "Tracks: ${tracks.joinToString(", ")}")
+                        override fun onTracksReceived(tracks: MutableList<TrackInfo>) {
+                            if (tracks.size >= 4) {
+                                val selectedTracks = selectRandomTracks(tracks)
+                                musicTrack = selectedTracks[0]
+                                lyricsTrack = selectedTracks[1]
+                                albumTrack = selectedTracks[2]
+                                artistTrack = selectedTracks[3]
+
+                                artistTrack?.let { track ->
+                                    fetchArtistProfileAndTopTracks(track.artist, TOKEN, object : ArtistDataCallback {
+                                        override fun onArtistDataReceived(artistData: ArtistData?) {
+                                            if (artistData != null) {
+                                                this@MainActivity.artistData = artistData
+                                                Log.d("Spotify", "Artist data fetched successfully: $artistData")
+                                            } else {
+                                                Log.e("Spotify", "Failed to fetch artist data.")
+                                            }
+                                        }
+                                    })
+                                }
+                            } else {
+                                Log.e("Spotify", "Not enough tracks to start all games.")
+                            }
                         }
                     })
-                    getUserProfile(response.accessToken)
+                    fetchUserProfile(response.accessToken)
                 }
                 AuthorizationResponse.Type.ERROR -> {
                     Log.e("Spotify", "Authorization error: ${response.error}")
@@ -134,7 +188,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun getUserProfile(token: String) {
+    private fun fetchUserProfile(token: String) {
         val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://api.spotify.com/v1/me")
@@ -143,7 +197,6 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string() ?: ""
-
             try {
                 val jsonResponse = JSONObject(responseBody)
                 val displayName = jsonResponse.getString("display_name")
@@ -171,7 +224,7 @@ private fun fetchLikedTracks(accessToken: String, callback: TracksCallback) {
             callback.onTracksReceived(mutableListOf())
         }
         override fun onResponse(call: okhttp3.Call, response: Response) {
-            val likedTracks = mutableListOf<String>()
+            val likedTracks = mutableListOf<TrackInfo>()
             if (!response.isSuccessful) {
                 Log.e("Spotify", "Error fetching liked tracks: ${response.message}")
                 callback.onTracksReceived(likedTracks)
@@ -184,13 +237,75 @@ private fun fetchLikedTracks(accessToken: String, callback: TracksCallback) {
                 for (i in 0 until itemsArray.length()) {
                     val trackObject = itemsArray.getJSONObject(i).getJSONObject("track")
                     val trackName = trackObject.getString("name")
-                    likedTracks.add(trackName)
+                    val artistName = trackObject.getJSONArray("artists").getJSONObject(0).getString("name")
+                    val albumName = trackObject.getJSONObject("album").getString("name")
+                    val albumCoverUrl = trackObject.getJSONObject("album").getJSONArray("images").getJSONObject(0).getString("url")
+                    val previewUrl = if (trackObject.has("preview_url")) trackObject.getString("preview_url") else null
+                    likedTracks.add(TrackInfo(trackName, artistName, albumName, albumCoverUrl, previewUrl))
                 }
             }
             callback.onTracksReceived(likedTracks)
         }
     })
 }
+
+private fun fetchArtistProfileAndTopTracks(artistName: String, accessToken: String, callback: ArtistDataCallback) {
+    val searchUrl = "https://api.spotify.com/v1/search?q=$artistName&type=artist"
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url(searchUrl)
+        .addHeader("Authorization", "Bearer $accessToken")
+        .build()
+    client.newCall(request).enqueue(object : okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: IOException) {
+            Log.e("Spotify", "Failed to fetch artist profile and tracks: ${e.message}")
+            callback.onArtistDataReceived(null)
+        }
+        override fun onResponse(call: okhttp3.Call, response: Response) {
+            val jsonData = response.body?.string()
+            if (jsonData != null) {
+                val jsonObject = JSONObject(jsonData)
+                val artistsArray = jsonObject.getJSONObject("artists").getJSONArray("items")
+                if (artistsArray.length() > 0) {
+                    val artistObject = artistsArray.getJSONObject(0)
+                    val artistId = artistObject.getString("id")
+                    val profilePictureUrl = artistObject.getJSONArray("images").getJSONObject(0).getString("url")
+
+                    fetchArtistTopTracks(artistId, accessToken, profilePictureUrl, callback)
+                }
+            }
+        }
+    })
+}
+
+private fun fetchArtistTopTracks(artistId: String, accessToken: String, profilePictureUrl: String, callback: ArtistDataCallback) {
+    val topTracksUrl = "https://api.spotify.com/v1/artists/$artistId/top-tracks?market=US"
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url(topTracksUrl)
+        .addHeader("Authorization", "Bearer $accessToken")
+        .build()
+    client.newCall(request).enqueue(object : okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: IOException) {
+            Log.e("Spotify", "Failed to fetch top tracks: ${e.message}")
+            callback.onArtistDataReceived(null)
+        }
+        override fun onResponse(call: okhttp3.Call, response: Response) {
+            val jsonData = response.body?.string()
+            if (jsonData != null) {
+                val jsonObject = JSONObject(jsonData)
+                val tracksArray = jsonObject.getJSONArray("tracks")
+                val mostPopularSong = if (tracksArray.length() > 0) tracksArray.getJSONObject(0).getString("name") else null
+                val artistData = ArtistData(
+                    profilePicture = profilePictureUrl,
+                    mostPopularSong = mostPopularSong,
+                )
+                callback.onArtistDataReceived(artistData)
+            }
+        }
+    })
+}
+
 
 // kind of template for fetching only one item
 
@@ -231,7 +346,12 @@ fun MainScreen(
     spotifyLogin: () -> Unit,
     disconnectSpotify: () -> Unit,
     isSpotifyConnected: Boolean,
-    username: String
+    username: String,
+    musicTrack: TrackInfo?,
+    lyricsTrack: TrackInfo?,
+    albumTrack: TrackInfo?,
+    artistTrack: TrackInfo?,
+    artistData: ArtistData?
 ) {
     val navController = rememberNavController()
     if(!isSpotifyConnected) {
@@ -274,16 +394,35 @@ fun MainScreen(
                 )
             }
             composable("lyricsGuess") {
-                LyricsGuessScreen(navController = navController)
+                LyricsGuessScreen(navController = navController) // TODO
             }
             composable("musicGuess") {
-                MusicGuessScreen(navController = navController)
+                musicTrack?.let { track ->
+                    MusicGuessScreen(navController = navController, track = track)
+                } ?: run {
+                    Log.e("Spotify", "Music track is null, cannot navigate to MusicGuessScreen")
+                }
             }
             composable("albumGuess") {
-                AlbumGuessScreen(navController = navController)
+                albumTrack?.let { track ->
+                    AlbumGuessScreen(navController = navController, track = track)
+                } ?: run {
+                    Log.e("Spotify", "Album track is null, cannot navigate to AlbumGuessScreen")
+                }
             }
             composable("artistGuess") {
-                ArtistGuessScreen(navController = navController)
+                artistTrack?.let { track ->
+                    ArtistGuessScreen(
+                        navController = navController,
+                        track = track,
+                        artist = artistData ?: ArtistData(
+                            profilePicture = null,
+                            mostPopularSong = "Unknown",
+                        )
+                    )
+                } ?: run {
+                    Log.e("Spotify", "Artist track is null, cannot navigate to ArtistGuessScreen")
+                }
             }
         }
     }
