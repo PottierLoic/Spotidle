@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ fun AlbumGuessScreen(
 ) {
     val context = LocalContext.current
     var attempts by remember { mutableIntStateOf(0) }
+    var winState by remember { mutableStateOf(false) }
     var blurAmount by remember { mutableFloatStateOf(25f) }
 
 
@@ -67,6 +69,7 @@ fun AlbumGuessScreen(
             onGuessSubmit = { guess ->
                 if (guess.equals(track.album, ignoreCase = true)) {
                     blurAmount = 0f
+                    winState = true
                 } else {
                     attempts += 1
 
@@ -77,7 +80,8 @@ fun AlbumGuessScreen(
                     }
                 }
             },
-            toGuess = "album"
+            toGuess = "album",
+            winState = winState
         )
     }
 }

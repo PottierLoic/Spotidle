@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ fun ArtistGuessScreen(
 ) {
     val context = LocalContext.current
     var attempts by remember { mutableIntStateOf(0) }
+    var winState by remember { mutableStateOf(false) }
 
     SpotifightScaffold(navController = navController) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -86,16 +88,18 @@ fun ArtistGuessScreen(
                 }
             }
         }
-
         GuessSection(
             correctGuessName = track.artist,
             onGuessSubmit = { guess ->
-                if (!guess.equals(track.artist, ignoreCase = true)) {
+                if (guess.equals(track.artist, ignoreCase = true)) {
+                    winState = true
+                } else {
                     attempts += 1
                 }
             },
             toGuess = "artist",
-            attempts = attempts
+            attempts = attempts,
+            winState = winState
         )
     }
 

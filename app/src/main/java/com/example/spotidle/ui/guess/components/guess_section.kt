@@ -18,6 +18,7 @@ fun GuessSection(
     onGuessSubmit: (String) -> Unit = {},
     toGuess: String,
     attempts: Int,
+    winState: Boolean = false
 ) {
     var inputText by remember { mutableStateOf("") }
     var guessState by remember { mutableStateOf(listOf(Color.Gray, Color.Gray, Color.Gray, Color.Gray)) }
@@ -30,6 +31,12 @@ fun GuessSection(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if(winState) {
+            Text(
+                text = "Congratulation, you found it !",
+                color = Color.White
+            )
+        }
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -48,30 +55,32 @@ fun GuessSection(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        GuessInputField(
-            label = "Enter the $toGuess name",
-            inputText = inputText,
-            onInputChange = { inputText = it },
-            onGuessSubmit = {
-                if (inputText.isNotBlank()) {
-                    guesses.add(inputText)
-                    if (inputText.equals(correctGuessName, ignoreCase = true)) {
-                        guessState = guessState.toMutableList().also {
-                            it[attempts] = Color.Green
-                        }
-                    } else {
-                        if (attempts < 4) {
+        if(!winState) {
+            Spacer(modifier = Modifier.height(16.dp))
+            GuessInputField(
+                label = "Enter the $toGuess name",
+                inputText = inputText,
+                onInputChange = { inputText = it },
+                onGuessSubmit = {
+                    if (inputText.isNotBlank()) {
+                        guesses.add(inputText)
+                        if (inputText.equals(correctGuessName, ignoreCase = true)) {
                             guessState = guessState.toMutableList().also {
-                                it[attempts] = Color.Red
+                                it[attempts] = Color.Green
+                            }
+                        } else {
+                            if (attempts < 4) {
+                                guessState = guessState.toMutableList().also {
+                                    it[attempts] = Color.Red
+                                }
                             }
                         }
+                        onGuessSubmit(inputText)
+                        inputText = ""
                     }
-                    onGuessSubmit(inputText)
-                    inputText = ""
                 }
-            }
-        )
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Previous Guesses:", color = Color.White)
         guesses.reversed().forEach { guess ->
