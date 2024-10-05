@@ -1,16 +1,13 @@
 package com.example.spotidle.ui.guess
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -28,6 +25,7 @@ import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
+@SuppressLint("AutoboxingStateCreation")
 @Composable
 fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
@@ -35,7 +33,9 @@ fun AlbumGuessScreen(
     track: TrackInfo
 ) {
     val context = LocalContext.current
+    var attempts by remember { mutableIntStateOf(0) }
     var blurAmount by remember { mutableFloatStateOf(25f) }
+
 
     SpotifightScaffold(navController = navController) {
         Box(
@@ -47,10 +47,10 @@ fun AlbumGuessScreen(
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current).data(data = track.albumCoverUrl)
-                        .apply(block = fun ImageRequest.Builder.() {
+                        .apply {
                             crossfade(true)
                             scale(Scale.FILL)
-                        }).build()
+                        }.build()
                 ),
                 contentDescription = "Album Cover",
                 modifier = Modifier
@@ -63,13 +63,21 @@ fun AlbumGuessScreen(
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
             correctGuessName = track.album,
+            attempts = attempts,
             onGuessSubmit = { guess ->
                 if (guess.equals(track.album, ignoreCase = true)) {
                     blurAmount = 0f
                 } else {
-                    blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
+                    attempts += 1
+
+                    if (attempts < 4) {
+                        blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
+                    } else if (attempts == 4) {
+                        blurAmount = 0f
+                    }
                 }
-            }
+            },
+            toGuess = "album"
         )
     }
 }

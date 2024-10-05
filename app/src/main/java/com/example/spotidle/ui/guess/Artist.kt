@@ -34,7 +34,7 @@ fun ArtistGuessScreen(
     artist: ArtistData
 ) {
     val context = LocalContext.current
-    var failedTries by remember { mutableIntStateOf(0) }
+    var attempts by remember { mutableIntStateOf(0) }
 
     SpotifightScaffold(navController = navController) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -45,7 +45,7 @@ fun ArtistGuessScreen(
                 .aspectRatio(1f)
                 .background(Color(0xFF1ED760))
         ) {
-            when (failedTries) {
+            when (attempts) {
                 0 -> {
                     Box(
                         modifier = Modifier
@@ -90,12 +90,12 @@ fun ArtistGuessScreen(
         GuessSection(
             correctGuessName = track.artist,
             onGuessSubmit = { guess ->
-                if (guess == track.artist) {
-                    //TODO success
-                } else {
-                    failedTries++
+                if (!guess.equals(track.artist, ignoreCase = true)) {
+                    attempts += 1
                 }
-            }
+            },
+            toGuess = "artist",
+            attempts = attempts
         )
     }
 

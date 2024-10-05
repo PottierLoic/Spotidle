@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
                                 artistTrack = selectedTracks[3]
 
                                 artistTrack?.let { track ->
-                                    fetchArtistProfileAndTopTracks(track.artist, TOKEN, object : ArtistDataCallback {
+                                    fetchArtist(track.artist, TOKEN, object : ArtistDataCallback {
                                         override fun onArtistDataReceived(artistData: ArtistData?) {
                                             if (artistData != null) {
                                                 this@MainActivity.artistData = artistData
@@ -249,7 +249,7 @@ private fun fetchLikedTracks(accessToken: String, callback: TracksCallback) {
     })
 }
 
-private fun fetchArtistProfileAndTopTracks(artistName: String, accessToken: String, callback: ArtistDataCallback) {
+private fun fetchArtist(artistName: String, accessToken: String, callback: ArtistDataCallback) {
     val searchUrl = "https://api.spotify.com/v1/search?q=$artistName&type=artist"
     val client = OkHttpClient()
     val request = Request.Builder()

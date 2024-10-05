@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +40,7 @@ fun MusicGuessScreen(
     val context = LocalContext.current
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
+    var attempts by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(track.previewUrl) {
         track.previewUrl?.let {
@@ -75,7 +77,16 @@ fun MusicGuessScreen(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        GuessSection(correctGuessName = track.name)
+        GuessSection(
+            correctGuessName = track.name,
+            toGuess = "song",
+            onGuessSubmit = { guess ->
+                if (!guess.equals(track.name, ignoreCase = true)) {
+                    attempts += 1
+                }
+            },
+            attempts = attempts
+        )
     }
 
     DisposableEffect(Unit) {
