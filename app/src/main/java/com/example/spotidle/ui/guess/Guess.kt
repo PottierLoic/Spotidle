@@ -27,7 +27,8 @@ import com.example.spotidle.ui.guess.components.SpotifightScaffold
 @Composable
 fun LyricsGuessScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    idTrack: String
 ) {
     val context = LocalContext.current
     val correctSongName = "Doucement" // TODO REMOVE

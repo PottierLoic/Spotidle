@@ -30,7 +30,8 @@ import com.example.spotidle.ui.guess.components.SpotifightScaffold
 @Composable
 fun MusicGuessScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    idTrack: String
 ) {
     val correctSongName = "Ratio" // TODO REMOVE
     val context = LocalContext.current

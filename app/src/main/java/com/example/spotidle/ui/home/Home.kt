@@ -155,6 +155,17 @@ fun HomeScreen(
                 }
             }
             Spacer(modifier = Modifier.size(100.dp))
+            Spacer(modifier = Modifier.size(10.dp))
+            Button(
+                onClick = { disconnectSpotify() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1DB954),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(text = "Reset Game")
+            }
             Button(
                 onClick = { disconnectSpotify() },
                 colors = ButtonDefaults.buttonColors(
