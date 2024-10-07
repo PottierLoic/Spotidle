@@ -28,6 +28,7 @@ import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.spotidle.GameState
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import okhttp3.OkHttpClient
@@ -45,9 +46,8 @@ fun LyricsGuessScreen(
 
     val context = LocalContext.current
     var attempts by remember { mutableIntStateOf(0) }
-    var winState by remember { mutableStateOf(false) }
-    val correctSongName = "Doucement" // TODO REMOVE
-//    val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
+    var gameState by remember { mutableStateOf(GameState.PLAYING) }
+    val correctSongName by remember { mutableStateOf("Doucement") } // TODO CHANGE
     val accessToken = "Bearer I2F2_DAHrB2NqZWmOOAceHfg-HJzNM9F83sJnRbgDdKVEfrxJNcpL764wI86SLu9" // Remplacez par votre access token
     var lyricsSnippet by remember { mutableStateOf("Chargement des paroles...") }
 
@@ -79,13 +79,16 @@ fun LyricsGuessScreen(
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    winState = true
+                    gameState = GameState.WIN
                 } else {
                     attempts += 1
+                    if (attempts >= 4) {
+                        gameState = GameState.LOOSE
+                    }
                 }
             },
             attempts = attempts,
-            winState = winState
+            gameState = gameState
         )
     }
 }

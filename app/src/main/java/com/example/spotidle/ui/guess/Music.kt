@@ -7,8 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -17,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +33,8 @@ import com.example.spotidle.spotifyApiManager.MusicManager
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Scale
+import com.example.spotidle.GameState
+import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import kotlinx.coroutines.CoroutineScope
@@ -47,19 +48,21 @@ fun MusicGuessScreen(
     idTrack: String
 ) {
     val musicManager = MusicManager()
-    var correctSongName = ""
+    val albumManager = AlbumManager()
+    var correctSongName by remember { mutableStateOf("") }
     var sampleUrl: String? = null
     val context = LocalContext.current
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var attempts by remember { mutableIntStateOf(0) }
-    var winState by remember { mutableStateOf(false) }
+    var gameState by remember { mutableStateOf(GameState.PLAYING) }
     var albumCoverUrl by remember { mutableStateOf("") }
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
             correctSongName = musicManager.getTitleName(idTrack)
             sampleUrl = musicManager.getSampleSong(idTrack)
+            albumCoverUrl = albumManager.getAlbumCover(musicManager.getAlbumName(trackId = idTrack).first)
         } catch (e: Exception) {
             Log.e("Spotify", "Failed to get title details: ${e.message}")
         }
@@ -76,9 +79,9 @@ fun MusicGuessScreen(
             modifier = Modifier
                 .size((context.resources.displayMetrics.widthPixels / 4).dp)
                 .aspectRatio(1f)
-                .background(Color(0xFF1ED760))
+                .background(Color.Transparent)
         ) {
-            if(winState) {
+            if (gameState == GameState.WIN || gameState == GameState.LOOSE) {
                 Image(
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(LocalContext.current).data(data = albumCoverUrl)
@@ -89,7 +92,7 @@ fun MusicGuessScreen(
                     ),
                     contentDescription = "Album Cover",
                     modifier = Modifier
-                        .padding(end = 8.dp)
+                        .fillMaxSize()
                         .align(Alignment.Center),
                     contentScale = ContentScale.Crop
                 )
@@ -134,13 +137,16 @@ fun MusicGuessScreen(
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    winState = true
+                    gameState = GameState.WIN
                 } else {
                     attempts += 1
+                    if (attempts >= 4) {
+                        gameState = GameState.LOOSE
+                    }
                 }
             },
             attempts = attempts,
-            winState = winState
+            gameState = gameState
         )
     }
 

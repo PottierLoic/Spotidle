@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.spotidle.GameState
 
 @Composable
 fun GuessSection(
@@ -18,7 +19,7 @@ fun GuessSection(
     onGuessSubmit: (String) -> Unit = {},
     toGuess: String,
     attempts: Int,
-    winState: Boolean = false
+    gameState: GameState = GameState.PLAYING
 ) {
     var inputText by remember { mutableStateOf("") }
     var guessState by remember { mutableStateOf(listOf(Color.Gray, Color.Gray, Color.Gray, Color.Gray)) }
@@ -31,12 +32,40 @@ fun GuessSection(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if(winState) {
-            Text(
-                text = "Congratulation, you found it !",
-                color = Color.White
-            )
+        when (gameState) {
+            GameState.WIN -> {
+                Text(
+                    text = "Congratulations, you won!",
+                    color = Color.White
+                )
+            }
+            GameState.LOOSE -> {
+                Text(
+                    text = "Game Over! You lost.",
+                    color = Color.White
+                )
+            }
+            GameState.PLAYING -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                GuessInputField(
+                    label = "Enter the $toGuess name",
+                    inputText = inputText,
+                    onInputChange = { inputText = it },
+                    onGuessSubmit = {
+                        if (inputText.isNotBlank()) {
+                            val isCorrectGuess = inputText.equals(correctGuessName, ignoreCase = true)
+                            guessState = guessState.toMutableList().also {
+                                it[attempts] = if (isCorrectGuess) Color(0xFF00C853) else Color(0xFFbf4e4e)
+                            }
+                            onGuessSubmit(inputText)
+                            guesses.add(inputText)
+                            inputText = ""
+                        }
+                    }
+                )
+            }
         }
+        Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -55,37 +84,12 @@ fun GuessSection(
                 }
             }
         }
-        if(!winState) {
-            Spacer(modifier = Modifier.height(16.dp))
-            GuessInputField(
-                label = "Enter the $toGuess name",
-                inputText = inputText,
-                onInputChange = { inputText = it },
-                onGuessSubmit = {
-                    if (inputText.isNotBlank()) {
-                        guesses.add(inputText)
-                        if (inputText.equals(correctGuessName, ignoreCase = true)) {
-                            guessState = guessState.toMutableList().also {
-                                it[attempts] = Color.Green
-                            }
-                        } else {
-                            if (attempts < 4) {
-                                guessState = guessState.toMutableList().also {
-                                    it[attempts] = Color.Red
-                                }
-                            }
-                        }
-                        onGuessSubmit(inputText)
-                        inputText = ""
-                    }
-                }
-            )
-        }
+
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Previous Guesses:", color = Color.White)
         guesses.reversed().forEach { guess ->
             val isCorrect = guess.equals(correctGuessName, ignoreCase = true)
-            val backgroundColor = if (isCorrect) Color(0xFF00C853) else Color(0xFFD50000)
+            val backgroundColor = if (isCorrect) Color(0xFF00C853) else Color(0xFFbf4e4e)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

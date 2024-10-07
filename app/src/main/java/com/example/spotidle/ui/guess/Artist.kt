@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.spotidle.GameState
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
@@ -33,7 +34,7 @@ fun ArtistGuessScreen(
 ) {
     val context = LocalContext.current
     var attempts by remember { mutableIntStateOf(0) }
-    var winState by remember { mutableStateOf(false) }
+    var gameState by remember { mutableStateOf(GameState.PLAYING) }
     val fillerArtistName = "TODO REPLACE"
     val fillerPopularSong = "TODO REPLACE"
     val fillerProfilePicture = "TODO REPLACE"
@@ -93,14 +94,17 @@ fun ArtistGuessScreen(
             correctGuessName = fillerArtistName,
             onGuessSubmit = { guess ->
                 if (guess.equals(fillerArtistName, ignoreCase = true)) {
-                    winState = true
+                    gameState = GameState.WIN
                 } else {
                     attempts += 1
+                    if (attempts >= 4) {
+                        gameState = GameState.LOOSE
+                    }
                 }
             },
             toGuess = "artist",
             attempts = attempts,
-            winState = winState
+            gameState = gameState
         )
     }
 

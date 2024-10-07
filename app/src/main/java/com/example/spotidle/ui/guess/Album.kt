@@ -25,6 +25,7 @@ import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.spotifyApiManager.MusicManager
 import coil.request.ImageRequest
 import coil.size.Scale
+import com.example.spotidle.GameState
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import kotlinx.coroutines.CoroutineScope
@@ -41,11 +42,11 @@ fun AlbumGuessScreen(
     val musicManager = MusicManager()
     val albumManager = AlbumManager()
     val context = LocalContext.current
-    var correctAlbumName = ""
+    var correctAlbumName by remember { mutableStateOf("") }
     var coverImageUrl by remember { mutableStateOf("") }
     var blurAmount by remember { mutableFloatStateOf(25f) }
     var attempts by remember { mutableIntStateOf(0) }
-    var winState by remember { mutableStateOf(false) }
+    var gameState by remember { mutableStateOf(GameState.PLAYING) }
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
@@ -77,7 +78,6 @@ fun AlbumGuessScreen(
                 contentDescription = "Album Cover",
                 modifier = Modifier
                     .blur(radius = blurAmount.dp)
-                    .padding(end = 8.dp)
                     .align(Alignment.Center),
                 contentScale = ContentScale.Crop
             )
@@ -89,18 +89,19 @@ fun AlbumGuessScreen(
             onGuessSubmit = { guess ->
                 if (guess.equals(correctAlbumName, ignoreCase = true)) {
                     blurAmount = 0f
-                    winState = true
+                    gameState = GameState.WIN
                 } else {
                     attempts += 1
                     if (attempts < 4) {
                         blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
                     } else if (attempts == 4) {
+                        gameState = GameState.LOOSE
                         blurAmount = 0f
                     }
                 }
             },
             toGuess = "album",
-            winState = winState
+            gameState = gameState
         )
     }
 }
