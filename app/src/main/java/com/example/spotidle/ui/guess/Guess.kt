@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,28 +24,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import android.os.Bundle
 import android.util.Log
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
-
-
-import com.example.spotidle.spotifyApiManager.RetrofitClient
-import com.example.spotidle.spotifyApiManager.SongResponse
-import com.example.spotidle.spotifyApiManager.Response
-import com.example.spotidle.spotifyApiManager.Song
-
-
-
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -55,6 +44,8 @@ fun LyricsGuessScreen(
 ) {
 
     val context = LocalContext.current
+    var attempts by remember { mutableIntStateOf(0) }
+    var winState by remember { mutableStateOf(false) }
     val correctSongName = "Doucement" // TODO REMOVE
 //    val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
     val accessToken = "Bearer I2F2_DAHrB2NqZWmOOAceHfg-HJzNM9F83sJnRbgDdKVEfrxJNcpL764wI86SLu9" // Remplacez par votre access token
@@ -82,7 +73,20 @@ fun LyricsGuessScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        GuessSection(correctGuessName = "Doucement")
+//        GuessSection(correctGuessName = "Doucement") // TODO : remove
+        GuessSection(
+            correctGuessName = correctSongName,
+            toGuess = "song",
+            onGuessSubmit = { guess ->
+                if (guess.equals(correctSongName, ignoreCase = true)) {
+                    winState = true
+                } else {
+                    attempts += 1
+                }
+            },
+            attempts = attempts,
+            winState = winState
+        )
     }
 }
 
