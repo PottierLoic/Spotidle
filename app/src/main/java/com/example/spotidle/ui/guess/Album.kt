@@ -21,15 +21,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
-import com.example.spotidle.MainActivity.Companion.TOKEN
-import com.example.spotidle.R
 import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.spotifyApiManager.MusicManager
-import com.example.spotidle.spotifyApiManager.UserManager
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import kotlinx.coroutines.CoroutineScope
@@ -73,7 +68,7 @@ fun AlbumGuessScreen(
         ) {
             Image(
                 painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current).data(data = track.coverImageUrl)
+                    ImageRequest.Builder(LocalContext.current).data(data = coverImageUrl)
                         .apply {
                             crossfade(true)
                             scale(Scale.FILL)
@@ -89,10 +84,10 @@ fun AlbumGuessScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
-            correctGuessName = track.album,
+            correctGuessName = correctAlbumName,
             attempts = attempts,
             onGuessSubmit = { guess ->
-                if (guess.equals(track.album, ignoreCase = true)) {
+                if (guess.equals(correctAlbumName, ignoreCase = true)) {
                     blurAmount = 0f
                     winState = true
                 } else {

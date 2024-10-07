@@ -33,7 +33,6 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
@@ -48,9 +47,12 @@ fun MusicGuessScreen(
     var isPlaying by remember { mutableStateOf(false) }
     var attempts by remember { mutableIntStateOf(0) }
     var winState by remember { mutableStateOf(false) }
+    var correctTrackName by remember { mutableStateOf("") }
+    var trackPreviewUrl by remember { mutableStateOf("https://www.youtube.com/watch?v=dQw4w9WgXcQ") }
+    var albumCoverUrl by remember { mutableStateOf("") }
 
-    LaunchedEffect(track.previewUrl) {
-        track.previewUrl?.let {
+    LaunchedEffect(trackPreviewUrl) {
+        trackPreviewUrl.let {
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(it)
                 prepareAsync()
@@ -71,7 +73,7 @@ fun MusicGuessScreen(
             if(winState) {
                 Image(
                     painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data = track.albumCoverUrl)
+                        ImageRequest.Builder(LocalContext.current).data(data = albumCoverUrl)
                             .apply {
                                 crossfade(true)
                                 scale(Scale.FILL)
@@ -101,10 +103,10 @@ fun MusicGuessScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
-            correctGuessName = track.name,
+            correctGuessName = correctTrackName,
             toGuess = "song",
             onGuessSubmit = { guess ->
-                if (guess.equals(track.name, ignoreCase = true)) {
+                if (guess.equals(correctTrackName, ignoreCase = true)) {
                     winState = true
                 } else {
                     attempts += 1
