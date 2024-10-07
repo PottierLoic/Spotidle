@@ -1,17 +1,14 @@
 package com.example.spotidle.ui.guess
 
 import android.util.Log
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -21,7 +18,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -31,12 +27,16 @@ import com.example.spotidle.R
 import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.spotifyApiManager.MusicManager
 import com.example.spotidle.spotifyApiManager.UserManager
+import coil.request.ImageRequest
+import coil.size.Scale
+import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@SuppressLint("AutoboxingStateCreation")
 @Composable
 fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
@@ -49,6 +49,8 @@ fun AlbumGuessScreen(
     var correctAlbumName = ""
     var coverImageUrl by remember { mutableStateOf("") }
     var blurAmount by remember { mutableFloatStateOf(25f) }
+    var attempts by remember { mutableIntStateOf(0) }
+    var winState by remember { mutableStateOf(false) }
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
@@ -60,6 +62,8 @@ fun AlbumGuessScreen(
         }
     }
 
+
+
     SpotifightScaffold(navController = navController) {
         Box(
             modifier = Modifier
@@ -68,7 +72,13 @@ fun AlbumGuessScreen(
                 .background(Color.Transparent)
         ) {
             Image(
-                painter = rememberAsyncImagePainter(coverImageUrl),
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current).data(data = track.coverImageUrl)
+                        .apply {
+                            crossfade(true)
+                            scale(Scale.FILL)
+                        }.build()
+                ),
                 contentDescription = "Album Cover",
                 modifier = Modifier
                     .blur(radius = blurAmount.dp)
@@ -79,16 +89,23 @@ fun AlbumGuessScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
-            correctGuessName = correctAlbumName,
+            correctGuessName = track.album,
+            attempts = attempts,
             onGuessSubmit = { guess ->
-                if (guess.equals(correctAlbumName, ignoreCase = true)) {
+                if (guess.equals(track.album, ignoreCase = true)) {
                     blurAmount = 0f
-                    Log.d("MOI", "GAGNÉ")
+                    winState = true
                 } else {
-                    blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
-                    Log.d("MOI", "PERDU")
+                    attempts += 1
+                    if (attempts < 4) {
+                        blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
+                    } else if (attempts == 4) {
+                        blurAmount = 0f
+                    }
                 }
-            }
+            },
+            toGuess = "album",
+            winState = winState
         )
     }
 }

@@ -45,6 +45,13 @@ class MainActivity : ComponentActivity() {
     private var userManager: UserManager = UserManager()
     private var fourRandTracksId: MutableState<List<String>> = mutableStateOf(emptyList())
 
+    private var musicTrack by mutableStateOf<TrackInfo?>(null)
+    private var lyricsTrack by mutableStateOf<TrackInfo?>(null)
+    private var albumTrack by mutableStateOf<TrackInfo?>(null)
+    private var artistTrack by mutableStateOf<TrackInfo?>(null)
+
+    private var artistData by mutableStateOf<ArtistData?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

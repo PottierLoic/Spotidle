@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +36,8 @@ fun LyricsGuessScreen(
     idTrack: String
 ) {
     val context = LocalContext.current
+    var attempts by remember { mutableIntStateOf(0) }
+    var winState by remember { mutableStateOf(false) }
     val correctSongName = "Doucement" // TODO REMOVE
     val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
 
@@ -47,7 +54,19 @@ fun LyricsGuessScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        GuessSection(correctGuessName = correctSongName)
+        GuessSection(
+            correctGuessName = correctSongName,
+            toGuess = "song",
+            onGuessSubmit = { guess ->
+                if (guess.equals(correctSongName, ignoreCase = true)) {
+                    winState = true
+                } else {
+                    attempts += 1
+                }
+            },
+            attempts = attempts,
+            winState = winState
+        )
     }
 }
 
