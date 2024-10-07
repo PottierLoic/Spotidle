@@ -19,10 +19,33 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import android.os.Bundle
+import android.util.Log
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
+
+
+import com.example.spotidle.spotifyApiManager.RetrofitClient
+import com.example.spotidle.spotifyApiManager.SongResponse
+import com.example.spotidle.spotifyApiManager.Response
+import com.example.spotidle.spotifyApiManager.Song
+
+
+
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LyricsGuessScreen(
@@ -30,9 +53,21 @@ fun LyricsGuessScreen(
     navController: NavController,
     idTrack: String
 ) {
+
     val context = LocalContext.current
     val correctSongName = "Doucement" // TODO REMOVE
-    val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
+//    val lyricsSnippet = "Je te donne ce que tu attends de moi. Et le temps peut s'écouler" // TODO REMOVE
+    val accessToken = "Bearer I2F2_DAHrB2NqZWmOOAceHfg-HJzNM9F83sJnRbgDdKVEfrxJNcpL764wI86SLu9" // Remplacez par votre access token
+    var lyricsSnippet by remember { mutableStateOf("Chargement des paroles...") }
+
+    Log.d("MOI", "LyricsGuessScreen initialisé avec idTrack: $idTrack")
+
+    LaunchedEffect(idTrack) {
+        Log.d("MOI", "LaunchedEffect déclenché pour idTrack: $idTrack")
+        fetchLyrics(378195, accessToken) { lyrics ->
+            lyricsSnippet = lyrics ?: "Erreur lors de la récupération des paroles"
+        }
+    }
 
     SpotifightScaffold(navController = navController) {
         Box(
@@ -47,9 +82,38 @@ fun LyricsGuessScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        GuessSection(correctGuessName = correctSongName)
+        GuessSection(correctGuessName = "Doucement")
     }
 }
+
+private suspend fun fetchLyrics(songId: Int, accessToken: String, onResult: (String?) -> Unit) {
+    withContext(Dispatchers.IO) {
+        try {
+            Log.d("MOI", "Appel à l'API Genius pour l'ID de la chanson: $songId")
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("https://api.genius.com/songs/$songId")
+                .header("Authorization", "Bearer I2F2_DAHrB2NqZWmOOAceHfg-HJzNM9F83sJnRbgDdKVEfrxJNcpL764wI86SLu9")
+                .build()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                val json = JSONObject(response.body?.string())
+                val lyrics = json.getJSONObject("response")
+                    .getJSONObject("song")
+                    .getString("lyrics") // Adjust this depending on actual response structure
+                Log.d("MOI", "Paroles reçues: $lyrics")
+                onResult(lyrics)
+            } else {
+                Log.e("MOI", "Erreur lors de la requête API Genius: ${response.code}")
+                onResult(null)
+            }
+        } catch (e: Exception) {
+            Log.e("MOI", "Erreur lors de la récupération des paroles", e)
+            onResult(null) // Handle the error properly
+        }
+    }
+}
+
 
 @Composable
 fun LyricsDisplay(lyricsSnippet: String, modifier: Modifier = Modifier) {
