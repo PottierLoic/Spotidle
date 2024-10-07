@@ -1,5 +1,6 @@
 package com.example.spotidle.ui.guess
 
+import android.util.Log
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,23 +21,42 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.spotidle.spotifyApiManager.AlbumManager
+import com.example.spotidle.spotifyApiManager.MusicManager
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @SuppressLint("AutoboxingStateCreation")
 @Composable
 fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    track: TrackInfo
+    idTrack: String
 ) {
+    val musicManager = MusicManager()
+    val albumManager = AlbumManager()
     val context = LocalContext.current
+    var correctAlbumName = ""
+    var coverImageUrl by remember { mutableStateOf("") }
+    var blurAmount by remember { mutableFloatStateOf(25f) }
     var attempts by remember { mutableIntStateOf(0) }
     var winState by remember { mutableStateOf(false) }
-    var blurAmount by remember { mutableFloatStateOf(25f) }
+
+    CoroutineScope(Dispatchers.Main).launch {
+        try {
+            val pair: Pair<String, String> = musicManager.getAlbumName(idTrack)
+            correctAlbumName = pair.second
+            coverImageUrl = albumManager.getAlbumCover(pair.first)
+        } catch (e: Exception) {
+            Log.e("Spotify", "Failed to get album details: ${e.message}")
+        }
+    }
+
 
 
     SpotifightScaffold(navController = navController) {
@@ -48,7 +68,7 @@ fun AlbumGuessScreen(
         ) {
             Image(
                 painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current).data(data = track.albumCoverUrl)
+                    ImageRequest.Builder(LocalContext.current).data(data = coverImageUrl)
                         .apply {
                             crossfade(true)
                             scale(Scale.FILL)
@@ -64,15 +84,14 @@ fun AlbumGuessScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
-            correctGuessName = track.album,
+            correctGuessName = correctAlbumName,
             attempts = attempts,
             onGuessSubmit = { guess ->
-                if (guess.equals(track.album, ignoreCase = true)) {
+                if (guess.equals(correctAlbumName, ignoreCase = true)) {
                     blurAmount = 0f
                     winState = true
                 } else {
                     attempts += 1
-
                     if (attempts < 4) {
                         blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
                     } else if (attempts == 4) {

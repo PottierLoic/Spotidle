@@ -22,8 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.spotidle.ArtistData
-import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 
@@ -31,12 +29,15 @@ import com.example.spotidle.ui.guess.components.SpotifightScaffold
 fun ArtistGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    track: TrackInfo,
-    artist: ArtistData
+    idTrack: String,
 ) {
     val context = LocalContext.current
     var attempts by remember { mutableIntStateOf(0) }
     var winState by remember { mutableStateOf(false) }
+    val fillerArtistName = "TODO REPLACE"
+    val fillerPopularSong = "TODO REPLACE"
+    val fillerProfilePicture = "TODO REPLACE"
+
 
     SpotifightScaffold(navController = navController) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -58,14 +59,14 @@ fun ArtistGuessScreen(
 
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(track.albumCoverUrl),
+                            painter = rememberAsyncImagePainter("TODO: Put ALBUM COVER URL"),
                             contentDescription = "Album Cover",
                             modifier = Modifier.size(150.dp)
                         )
                     }
                 }
                 1 -> {
-                    artist.mostPopularSong?.let { popularSong ->
+                    fillerPopularSong?.let { popularSong ->
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -78,7 +79,7 @@ fun ArtistGuessScreen(
                     }
                 }
                 2 -> {
-                    artist.profilePicture?.let { profilePicture ->
+                    fillerProfilePicture?.let { profilePicture ->
                         Image(
                             painter = rememberAsyncImagePainter(profilePicture),
                             contentDescription = "Artist Profile Picture",
@@ -89,9 +90,9 @@ fun ArtistGuessScreen(
             }
         }
         GuessSection(
-            correctGuessName = track.artist,
+            correctGuessName = fillerArtistName,
             onGuessSubmit = { guess ->
-                if (guess.equals(track.artist, ignoreCase = true)) {
+                if (guess.equals(fillerArtistName, ignoreCase = true)) {
                     winState = true
                 } else {
                     attempts += 1

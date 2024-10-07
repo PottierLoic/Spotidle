@@ -30,34 +30,44 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.spotidle.spotifyApiManager.MusicManager
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.example.spotidle.TrackInfo
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun MusicGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    track: TrackInfo
+    idTrack: String
 ) {
+    val musicManager = MusicManager()
+    var correctSongName = ""
+    var sampleUrl: String? = null
     val context = LocalContext.current
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var attempts by remember { mutableIntStateOf(0) }
     var winState by remember { mutableStateOf(false) }
+    var albumCoverUrl by remember { mutableStateOf("") }
 
-    LaunchedEffect(track.previewUrl) {
-        track.previewUrl?.let {
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(it)
-                prepareAsync()
-                setOnPreparedListener {
-                    Log.d("MediaPlayer", "MediaPlayer started")
-                }
-            }
+    CoroutineScope(Dispatchers.Main).launch {
+        try {
+            correctSongName = musicManager.getTitleName(idTrack)
+            sampleUrl = musicManager.getSampleSong(idTrack)
+        } catch (e: Exception) {
+            Log.e("Spotify", "Failed to get title details: ${e.message}")
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
         }
     }
 
@@ -71,7 +81,7 @@ fun MusicGuessScreen(
             if(winState) {
                 Image(
                     painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data = track.albumCoverUrl)
+                        ImageRequest.Builder(LocalContext.current).data(data = albumCoverUrl)
                             .apply {
                                 crossfade(true)
                                 scale(Scale.FILL)
@@ -88,6 +98,25 @@ fun MusicGuessScreen(
                 onClick = {
                     isPlaying = !isPlaying;
                     if (!isPlaying) mediaPlayer?.pause() else mediaPlayer?.start();
+                    Log.d("MOI", "Reponse: $correctSongName")
+                    if (isPlaying) {
+                        if (sampleUrl != null && mediaPlayer == null) {
+                            mediaPlayer = MediaPlayer().apply {
+                                setDataSource(sampleUrl)
+                                prepareAsync()
+                                setOnPreparedListener {
+                                    start()
+                                }
+                                setOnCompletionListener {
+                                    isPlaying = false
+                                }
+                            }
+                        } else {
+                            mediaPlayer?.start()
+                        }
+                    } else {
+                        mediaPlayer?.pause()
+                    }
                 },
                 modifier = Modifier
                     .size(64.dp)
@@ -101,10 +130,10 @@ fun MusicGuessScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
-            correctGuessName = track.name,
+            correctGuessName = correctSongName,
             toGuess = "song",
             onGuessSubmit = { guess ->
-                if (guess.equals(track.name, ignoreCase = true)) {
+                if (guess.equals(correctSongName, ignoreCase = true)) {
                     winState = true
                 } else {
                     attempts += 1
@@ -120,5 +149,7 @@ fun MusicGuessScreen(
             mediaPlayer?.release()
             mediaPlayer = null
         }
+        // TODO: Not :"album name" but "song name"
+        // Todo: Close the mediaplayer if "<-" button hit
     }
 }
