@@ -1,5 +1,6 @@
 package com.example.spotidle.ui.guess
 
+import GameViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.spotidle.GameState
 import com.example.spotidle.ui.guess.components.GuessSection
@@ -41,12 +43,11 @@ import kotlinx.coroutines.withContext
 fun LyricsGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    idTrack: String
+    idTrack: String,
+    gameViewModel: GameViewModel = viewModel()
 ) {
 
     val context = LocalContext.current
-    var attempts by remember { mutableIntStateOf(0) }
-    var gameState by remember { mutableStateOf(GameState.PLAYING) }
     val correctSongName by remember { mutableStateOf("Doucement") } // TODO CHANGE
     val accessToken = "Bearer I2F2_DAHrB2NqZWmOOAceHfg-HJzNM9F83sJnRbgDdKVEfrxJNcpL764wI86SLu9" // Remplacez par votre access token
     var lyricsSnippet by remember { mutableStateOf("Chargement des paroles...") }
@@ -79,16 +80,15 @@ fun LyricsGuessScreen(
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    gameState = GameState.WIN
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    attempts += 1
-                    if (attempts >= 4) {
-                        gameState = GameState.LOOSE
+                    gameViewModel.attempts += 1
+                    if (gameViewModel.attempts >= 4) {
+                        gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
-            attempts = attempts,
-            gameState = gameState
+            viewModel = gameViewModel
         )
     }
 }

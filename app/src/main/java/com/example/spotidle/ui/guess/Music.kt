@@ -1,5 +1,6 @@
 package com.example.spotidle.ui.guess
 
+import GameViewModel
 import android.media.MediaPlayer
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -18,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.spotidle.spotifyApiManager.MusicManager
 import coil.compose.rememberAsyncImagePainter
@@ -45,7 +46,8 @@ import kotlinx.coroutines.launch
 fun MusicGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    idTrack: String
+    idTrack: String,
+    gameViewModel: GameViewModel = viewModel()
 ) {
     val musicManager = MusicManager()
     val albumManager = AlbumManager()
@@ -54,8 +56,6 @@ fun MusicGuessScreen(
     val context = LocalContext.current
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
-    var attempts by remember { mutableIntStateOf(0) }
-    var gameState by remember { mutableStateOf(GameState.PLAYING) }
     var albumCoverUrl by remember { mutableStateOf("") }
 
     CoroutineScope(Dispatchers.Main).launch {
@@ -81,7 +81,7 @@ fun MusicGuessScreen(
                 .aspectRatio(1f)
                 .background(Color.Transparent)
         ) {
-            if (gameState == GameState.WIN || gameState == GameState.LOOSE) {
+            if (gameViewModel.gameState == GameState.WIN || gameViewModel.gameState == GameState.LOOSE) {
                 Image(
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(LocalContext.current).data(data = albumCoverUrl)
@@ -137,16 +137,15 @@ fun MusicGuessScreen(
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    gameState = GameState.WIN
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    attempts += 1
-                    if (attempts >= 4) {
-                        gameState = GameState.LOOSE
+                    gameViewModel.attempts += 1
+                    if (gameViewModel.attempts >= 4) {
+                        gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
-            attempts = attempts,
-            gameState = gameState
+            viewModel = gameViewModel
         )
     }
 

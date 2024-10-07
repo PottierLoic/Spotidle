@@ -1,5 +1,6 @@
 package com.example.spotidle.ui.guess
 
+import GameViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.spotidle.GameState
@@ -35,10 +37,9 @@ fun ArtistGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
+    gameViewModel: GameViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    var attempts by remember { mutableIntStateOf(0) }
-    var gameState by remember { mutableStateOf(GameState.PLAYING) }
     val fillerArtistName = "TODO REPLACE"
     val fillerAlbumCover = "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228"
     val fillerPopularSong = "La kifance"
@@ -55,7 +56,7 @@ fun ArtistGuessScreen(
                 .aspectRatio(1f)
                 .background(Color(0xFF1ED760))
         ) {
-            if (attempts >= 0) {
+            if (gameViewModel.attempts >= 0) {
                 Image(
                     painter = rememberAsyncImagePainter(fillerAlbumCover),
                     contentDescription = "Album Cover",
@@ -66,7 +67,7 @@ fun ArtistGuessScreen(
                         .background(Color.Transparent)
                 )
             }
-            if (attempts >= 1) {
+            if (gameViewModel.attempts >= 1) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
@@ -82,7 +83,7 @@ fun ArtistGuessScreen(
                     )
                 }
             }
-            if (attempts >= 2) {
+            if (gameViewModel.attempts >= 2) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
@@ -98,7 +99,7 @@ fun ArtistGuessScreen(
                     )
                 }
             }
-            if (attempts >= 3) {
+            if (gameViewModel.attempts >= 3) {
                 Image(
                     painter = rememberAsyncImagePainter(fillerProfilePicture),
                     contentDescription = "Artist Profile Picture",
@@ -114,17 +115,16 @@ fun ArtistGuessScreen(
             correctGuessName = fillerArtistName,
             onGuessSubmit = { guess ->
                 if (guess.equals(fillerArtistName, ignoreCase = true)) {
-                    gameState = GameState.WIN
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    attempts += 1
-                    if (attempts >= 4) {
-                        gameState = GameState.LOOSE
+                    gameViewModel.attempts += 1
+                    if (gameViewModel.attempts >= 4) {
+                        gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
             toGuess = "artist",
-            attempts = attempts,
-            gameState = gameState
+            viewModel = gameViewModel
         )
     }
 

@@ -1,5 +1,6 @@
 package com.example.spotidle
 
+import GameViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -130,6 +132,11 @@ fun MainScreen(
     username: String,
     fourRandTracksId: List<String>
 ) {
+    val musicGameViewModel: GameViewModel = viewModel(key = "musicGameViewModel")
+    val lyricsGameViewModel: GameViewModel = viewModel(key = "lyricsGameViewModel")
+    val albumGameViewModel: GameViewModel = viewModel(key = "albumGameViewModel")
+    val artistGameViewModel: GameViewModel = viewModel(key = "artistGameViewModel")
+
     val navController = rememberNavController()
     if(!isSpotifyConnected) {
         Box(
@@ -173,22 +180,30 @@ fun MainScreen(
             composable("lyricsGuess") {
                 LyricsGuessScreen(
                     navController = navController,
-                    idTrack = fourRandTracksId[0])
+                    idTrack = fourRandTracksId[0],
+                    gameViewModel = lyricsGameViewModel
+                )
             }
             composable("musicGuess") {
                 MusicGuessScreen(
                     navController = navController,
-                    idTrack = fourRandTracksId[1])
+                    idTrack = fourRandTracksId[1],
+                    gameViewModel = musicGameViewModel
+                )
             }
             composable("albumGuess") {
                 AlbumGuessScreen(
                     navController = navController,
-                    idTrack = fourRandTracksId[2])
+                    idTrack = fourRandTracksId[2],
+                    gameViewModel = albumGameViewModel
+                )
             }
             composable("artistGuess") {
                 ArtistGuessScreen(
                     navController = navController,
-                    idTrack = fourRandTracksId[3])
+                    idTrack = fourRandTracksId[3],
+                    gameViewModel = artistGameViewModel
+                )
             }
         }
     }

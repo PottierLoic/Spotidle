@@ -1,11 +1,13 @@
 package com.example.spotidle.ui.guess
 
+import GameViewModel
 import android.util.Log
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.spotidle.spotifyApiManager.AlbumManager
@@ -37,7 +40,9 @@ import kotlinx.coroutines.launch
 fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    idTrack: String
+    idTrack: String,
+    gameViewModel: GameViewModel = viewModel()
+
 ) {
     val musicManager = MusicManager()
     val albumManager = AlbumManager()
@@ -45,8 +50,15 @@ fun AlbumGuessScreen(
     var correctAlbumName by remember { mutableStateOf("") }
     var coverImageUrl by remember { mutableStateOf("") }
     var blurAmount by remember { mutableFloatStateOf(25f) }
-    var attempts by remember { mutableIntStateOf(0) }
-    var gameState by remember { mutableStateOf(GameState.PLAYING) }
+
+    LaunchedEffect(gameViewModel.attempts, gameViewModel.gameState) {
+        blurAmount = when (gameViewModel.gameState) {
+            GameState.WIN, GameState.LOOSE -> 0f
+            GameState.PLAYING -> {
+                (25f - 5f * gameViewModel.attempts).coerceAtLeast(0f)
+            }
+        }
+    }
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
@@ -57,8 +69,6 @@ fun AlbumGuessScreen(
             Log.e("Spotify", "Failed to get album details: ${e.message}")
         }
     }
-
-
 
     SpotifightScaffold(navController = navController) {
         Box(
@@ -85,23 +95,22 @@ fun AlbumGuessScreen(
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
             correctGuessName = correctAlbumName,
-            attempts = attempts,
             onGuessSubmit = { guess ->
                 if (guess.equals(correctAlbumName, ignoreCase = true)) {
                     blurAmount = 0f
-                    gameState = GameState.WIN
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    attempts += 1
-                    if (attempts < 4) {
+                    gameViewModel.attempts += 1
+                    if (gameViewModel.attempts < 4) {
                         blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
-                    } else if (attempts == 4) {
-                        gameState = GameState.LOOSE
+                    } else if (gameViewModel.attempts == 4) {
+                        gameViewModel.gameState = GameState.LOOSE
                         blurAmount = 0f
                     }
                 }
             },
             toGuess = "album",
-            gameState = gameState
+            viewModel = gameViewModel
         )
     }
 }
