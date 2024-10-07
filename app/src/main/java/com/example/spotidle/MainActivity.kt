@@ -175,6 +175,10 @@ fun MainScreen(
                     username = username,
                     navController = navController,
                     disconnectSpotify = disconnectSpotify,
+                    musicGameViewModel = musicGameViewModel,
+                    lyricsGameViewModel = lyricsGameViewModel,
+                    albumGameViewModel = albumGameViewModel,
+                    artistGameViewModel = artistGameViewModel
                 )
             }
             composable("lyricsGuess") {
