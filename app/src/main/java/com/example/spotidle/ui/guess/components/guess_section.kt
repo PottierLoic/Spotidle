@@ -41,7 +41,7 @@ fun GuessSection(
             }
             GameState.LOOSE -> {
                 Text(
-                    text = "Game Over! You lost.",
+                    text = "Game Over! You lost. It was $correctGuessName...",
                     color = Color.White
                 )
             }
