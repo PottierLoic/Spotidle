@@ -71,8 +71,9 @@ fun ArtistGuessScreen(
             val popularSongPair: Pair<String, String> = artistManager.getAFamousTrackIdName(artistId)
             popularSong = popularSongPair.second
             popularity = trackManager.getPopularity(popularSongPair.first)
-            musicalGenre.clear()
-            musicalGenre.addAll(artistManager.getGenres(artistId))
+            if (musicalGenre.isEmpty()) {
+                musicalGenre.addAll(artistManager.getGenres(artistId))
+            }
             Log.d("LOIC", musicalGenre.joinToString(", "))
             profilePicture = artistManager.getProfilePicture(artistId)
         } catch (e: Exception) {
