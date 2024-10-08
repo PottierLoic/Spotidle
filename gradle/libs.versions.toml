@@ -5,6 +5,7 @@ auth = "1.2.3"
 authVersion = "2.1.1"
 browser = "1.8.0"
 coilComposeVersion = "2.2.2"
+coilGif = "2.1.0"
 gson = "2.10.1"
 jacksonAnnotations = "2.15.2"
 jsoupVersion = "1.15.3"
@@ -30,6 +31,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 auth = { module = "com.spotify.android:auth", version.ref = "auth" }
 auth-v125 = { module = "com.spotify.android:auth", version.ref = "spotifyAuth" }
 auth-v211 = { module = "com.spotify.android:auth", version.ref = "authVersion" }
+coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilGif" }
 coil-kt-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }

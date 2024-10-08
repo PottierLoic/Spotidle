@@ -99,9 +99,7 @@ class MainActivity : ComponentActivity() {
             onSuccess = { token ->
                 TOKEN = token
                 isSpotifyConnected.value = true
-                // Get username
                 setUserName()
-                // Get liked tracks
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         val tracks: List<String> = userManager.fetchLikedTracks()
@@ -109,9 +107,6 @@ class MainActivity : ComponentActivity() {
                             throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
                         }
                         fourRandTracksId.value = tracks.shuffled().take(4)
-                        Log.d("MOI", ">>> ${fourRandTracksId.value[0]}")
-                        Log.d("MOI", ">>> ${fourRandTracksId.value[1]}")
-                        Log.d("MOI", ">>> ${fourRandTracksId.value[2]}")
                     } catch (e: Exception) {
                         Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
                     }
@@ -173,6 +168,7 @@ fun MainScreen(
                     navController = navController,
                     disconnectSpotify = disconnectSpotify,
                     gameViewModel = gameViewModel,
+                    tracksList = fourRandTracksId
                 )
             }
             composable("lyricsGuess") {

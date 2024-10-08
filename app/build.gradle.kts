@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.okhttp)
     implementation(libs.coil.kt.coil.compose)
+    implementation(libs.coil.gif)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

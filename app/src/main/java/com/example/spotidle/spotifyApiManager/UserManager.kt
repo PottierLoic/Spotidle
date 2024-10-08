@@ -34,32 +34,47 @@ class UserManager() {
 
     suspend fun fetchLikedTracks(): List<String> {
         val client = OkHttpClient()
-        val request = Request.Builder()
-            .url("https://api.spotify.com/v1/me/tracks")
-            .addHeader("Authorization", "Bearer ${MainActivity.TOKEN}")
-            .build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val likedTracks = mutableListOf<String>()
+        val likedTracks = mutableListOf<String>()
+        var hasNextPage = true
+        var offset = 0
+        val limit = 50
+
+        while (hasNextPage) {
+            val request = Request.Builder()
+                .url("https://api.spotify.com/v1/me/tracks?limit=$limit&offset=$offset")
+                .addHeader("Authorization", "Bearer ${MainActivity.TOKEN}")
+                .build()
+
+            val response = withContext(Dispatchers.IO) {
+                client.newCall(request).execute()
+            }
+
             if (!response.isSuccessful) {
                 Log.e("Spotify", "Error fetching liked tracks: ${response.message}")
-                return@withContext likedTracks
+                return likedTracks
             }
+
             val jsonData = response.body?.string() ?: ""
             try {
                 val jsonObject = JSONObject(jsonData)
                 val itemsArray = jsonObject.getJSONArray("items")
+
                 for (i in 0 until itemsArray.length()) {
                     val trackObject = itemsArray.getJSONObject(i).getJSONObject("track")
                     val trackId = trackObject.getString("id")
                     likedTracks.add(trackId)
                 }
+
+                offset += limit
+                hasNextPage = !jsonObject.isNull("next")
+
             } catch (e: JSONException) {
                 Log.e("Spotify", "Failed to parse liked tracks: ${e.message}")
                 Log.e("Spotify", "Response was: $jsonData")
+                break
             }
-            likedTracks
         }
-    }
 
+        return likedTracks
+    }
 }
