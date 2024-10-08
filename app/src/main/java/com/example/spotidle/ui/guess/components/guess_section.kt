@@ -1,6 +1,5 @@
 package com.example.spotidle.ui.guess.components
 
-import GameViewModel
 import QuizzViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -53,6 +52,25 @@ fun GuessSection(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            for (i in 1..4) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = guessState[i - 1],
+                            shape = RoundedCornerShape(4.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "$i", fontSize = 16.sp, color = Color.White)
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         when (gameState) {
             GameState.WIN -> {
                 Text(
@@ -82,26 +100,6 @@ fun GuessSection(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            for (i in 1..4) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = guessState[i - 1],
-                            shape = RoundedCornerShape(4.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "$i", fontSize = 16.sp, color = Color.White)
-                }
-            }
-        }
-
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Previous Guesses:", color = Color.White)
         quizzViewModel.guesses.reversed().forEach { guess ->
