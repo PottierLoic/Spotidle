@@ -1,9 +1,11 @@
 package com.example.spotidle.ui.guess
 
 import GameViewModel
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,9 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,8 +33,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.spotidle.GameState
+import com.example.spotidle.spotifyApiManager.AlbumManager
+import com.example.spotidle.spotifyApiManager.ArtistManager
+import com.example.spotidle.spotifyApiManager.TrackManager
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
+import com.spotify.protocol.types.Album
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistGuessScreen(
@@ -39,13 +50,35 @@ fun ArtistGuessScreen(
     idTrack: String,
     gameViewModel: GameViewModel = viewModel()
 ) {
+    val albumManager = AlbumManager()
+    val trackManager = TrackManager()
+    val artistManager = ArtistManager()
     val context = LocalContext.current
-    val fillerArtistName = "TODO REPLACE"
-    val fillerAlbumCover = "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228"
-    val fillerPopularSong = "La kifance"
-    val fillerMusicalGenre = "Afrotrap"
-    val fillerProfilePicture = "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228"
 
+    var artistName by remember { mutableStateOf("") }
+    var oldestAlbumCoverUrl by remember { mutableStateOf("") }
+    var popularSong by remember { mutableStateOf("") }
+    var popularity by remember { mutableStateOf("") }
+    var musicalGenre = remember { mutableStateListOf<String>() }
+    var profilePicture by remember { mutableStateOf("") }
+
+    CoroutineScope(Dispatchers.Main).launch {
+        try {
+            val pair: Pair<String, String> = trackManager.getArtistIdName(idTrack)
+            val artistId = pair.first
+            artistName = pair.second
+            oldestAlbumCoverUrl = albumManager.getAlbumCover(artistManager.getOldestAlbumId(artistId))
+            val popularSongPair: Pair<String, String> = artistManager.getAFamousTrackIdName(artistId)
+            popularSong = popularSongPair.second
+            popularity = trackManager.getPopularity(popularSongPair.first)
+            musicalGenre.clear()
+            musicalGenre.addAll(artistManager.getGenres(artistId))
+            Log.d("LOIC", musicalGenre.joinToString(", "))
+            profilePicture = artistManager.getProfilePicture(artistId)
+        } catch (e: Exception) {
+            Log.e("Spotify", "Failed to get artist details: ${e.message}")
+        }
+    }
 
     SpotifightScaffold(navController = navController) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -58,7 +91,7 @@ fun ArtistGuessScreen(
         ) {
             if (gameViewModel.attempts >= 0) {
                 Image(
-                    painter = rememberAsyncImagePainter(fillerAlbumCover),
+                    painter = rememberAsyncImagePainter(oldestAlbumCoverUrl),
                     contentDescription = "Album Cover",
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
@@ -76,7 +109,7 @@ fun ArtistGuessScreen(
                         .padding(8.dp)
                 ) {
                     Text(
-                        text = fillerPopularSong,
+                        text = popularSong,
                         color = Color.White,
                         fontSize = 15.sp,
                         modifier = Modifier.align(Alignment.Center)
@@ -91,17 +124,27 @@ fun ArtistGuessScreen(
                         .align(Alignment.BottomStart)
                         .padding(8.dp)
                 ) {
-                    Text(
-                        text = fillerMusicalGenre,
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        musicalGenre.forEach { genre ->
+                            Text(
+                                text = genre,
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
                 }
             }
             if (gameViewModel.attempts >= 3) {
                 Image(
-                    painter = rememberAsyncImagePainter(fillerProfilePicture),
+                    painter = rememberAsyncImagePainter(profilePicture),
                     contentDescription = "Artist Profile Picture",
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
@@ -112,9 +155,9 @@ fun ArtistGuessScreen(
             }
         }
         GuessSection(
-            correctGuessName = fillerArtistName,
+            correctGuessName = artistName,
             onGuessSubmit = { guess ->
-                if (guess.equals(fillerArtistName, ignoreCase = true)) {
+                if (guess.equals(artistName, ignoreCase = true)) {
                     gameViewModel.gameState = GameState.WIN
                 } else {
                     gameViewModel.attempts += 1

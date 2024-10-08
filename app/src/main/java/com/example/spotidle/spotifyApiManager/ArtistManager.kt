@@ -8,10 +8,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
+import kotlin.Int.Companion.MAX_VALUE
 
 class ArtistManager {
   fun int_year(release_date: String): Int {
-    release_date.substringBeforeLast("-").toInt()
+    return release_date.split("-")[0].toInt()
   }
 
   suspend fun getOldestAlbumId(artistId: String): String {
@@ -27,10 +28,10 @@ class ArtistManager {
             val jsonResponse = JSONObject(responseBody)
             val albums = jsonResponse.getJSONArray("items")
             val min_date = MAX_VALUE
-            val oldestId = ""
+            var oldestId = ""
             for (i in 0 until albums.length()) {
-              if (albums.getJSONObject(i).getString("release_date").int_year() < min_date) {
-                id = albums.getJSONObject(i).getString("id")
+              if (int_year(albums.getJSONObject(i).getString("release_date")) < min_date) {
+                oldestId = albums.getJSONObject(i).getString("id")
               }
             }
             oldestId
@@ -56,7 +57,7 @@ class ArtistManager {
         try {
             val jsonResponse = JSONObject(responseBody)
             val tracks = jsonResponse.getJSONArray("tracks")
-            val oneOfFamous = tracks.getJSONObject((0..(tracks.size())).random())
+            val oneOfFamous = tracks.getJSONObject((0..(tracks.length())).random())
             val mostFamousId = oneOfFamous.getString("id")
             val mostFamousName = oneOfFamous.getString("name")
             Pair(mostFamousId, mostFamousName)
@@ -86,7 +87,7 @@ class ArtistManager {
           val jsonObject = JSONObject(jsonData)
           val itemsArray = jsonObject.getJSONArray("genres")
           for (i in 0 until itemsArray.length()) {
-              val genre = itemsArray.getJSONObject(i)
+              val genre = itemsArray.getString(i)
               genres.add(genre)
           }
       } catch (e: JSONException) {

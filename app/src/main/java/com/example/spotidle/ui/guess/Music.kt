@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.spotidle.spotifyApiManager.MusicManager
+import com.example.spotidle.spotifyApiManager.TrackManager
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Scale
@@ -49,7 +49,7 @@ fun MusicGuessScreen(
     idTrack: String,
     gameViewModel: GameViewModel = viewModel()
 ) {
-    val musicManager = MusicManager()
+    val trackManager = TrackManager()
     val albumManager = AlbumManager()
     var correctSongName by remember { mutableStateOf("") }
     var sampleUrl: String? = null
@@ -60,9 +60,9 @@ fun MusicGuessScreen(
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            correctSongName = musicManager.getTitle(idTrack)
-            sampleUrl = musicManager.getTrackSample(idTrack)
-            albumCoverUrl = albumManager.getAlbumCover(musicManager.getAlbumIdName(trackId = idTrack).first)
+            correctSongName = trackManager.getTitle(idTrack)
+            sampleUrl = trackManager.getTrackSample(idTrack)
+            albumCoverUrl = albumManager.getAlbumCover(trackManager.getAlbumIdName(trackId = idTrack).first)
         } catch (e: Exception) {
             Log.e("Spotify", "Failed to get title details: ${e.message}")
         }

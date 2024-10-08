@@ -9,7 +9,7 @@ import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 
-class MusicManager {
+class TrackManager {
     suspend fun getTrackSample(trackId: String): String? {
         val client = OkHttpClient()
         val request = Request.Builder()

@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,7 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.spotidle.spotifyApiManager.AlbumManager
-import com.example.spotidle.spotifyApiManager.MusicManager
+import com.example.spotidle.spotifyApiManager.TrackManager
 import coil.request.ImageRequest
 import coil.size.Scale
 import com.example.spotidle.GameState
@@ -44,7 +43,7 @@ fun AlbumGuessScreen(
     gameViewModel: GameViewModel = viewModel()
 
 ) {
-    val musicManager = MusicManager()
+    val trackManager = TrackManager()
     val albumManager = AlbumManager()
     val context = LocalContext.current
     var correctAlbumName by remember { mutableStateOf("") }
@@ -62,7 +61,7 @@ fun AlbumGuessScreen(
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            val pair: Pair<String, String> = musicManager.getAlbumIdName(idTrack)
+            val pair: Pair<String, String> = trackManager.getAlbumIdName(idTrack)
             correctAlbumName = pair.second
             coverImageUrl = albumManager.getAlbumCover(pair.first)
         } catch (e: Exception) {
