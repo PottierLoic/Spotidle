@@ -1,6 +1,7 @@
 package com.example.spotidle.ui.guess.components
 
 import GameViewModel
+import QuizzViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,26 +20,27 @@ fun GuessSection(
     correctGuessName: String,
     onGuessSubmit: (String) -> Unit = {},
     toGuess: String,
-    viewModel: GameViewModel
+    gameState: GameState,
+    quizzViewModel: QuizzViewModel
 ) {
     var inputText by remember { mutableStateOf("") }
     var guessState by remember { mutableStateOf(listOf(Color.Gray, Color.Gray, Color.Gray, Color.Gray)) }
 
-    LaunchedEffect(viewModel.attempts, viewModel.gameState) {
+    LaunchedEffect(quizzViewModel.attempts, gameState) {
         guessState = List(4) { index ->
-            when (viewModel.gameState) {
+            when (gameState) {
                 GameState.WIN -> {
                     when {
-                        index < viewModel.attempts -> Color(0xFFbf4e4e)
-                        index == viewModel.attempts -> Color(0xFF00C853)
+                        index < quizzViewModel.attempts -> Color(0xFFbf4e4e)
+                        index == quizzViewModel.attempts -> Color(0xFF00C853)
                         else -> Color.Gray
                     }
                 }
                 GameState.LOOSE -> {
-                    if (index < viewModel.attempts) Color(0xFFbf4e4e) else Color.Gray
+                    if (index < quizzViewModel.attempts) Color(0xFFbf4e4e) else Color.Gray
                 }
                 GameState.PLAYING -> {
-                    if (index < viewModel.attempts) Color(0xFFbf4e4e) else Color.Gray
+                    if (index < quizzViewModel.attempts) Color(0xFFbf4e4e) else Color.Gray
                 }
             }
         }
@@ -51,7 +53,7 @@ fun GuessSection(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        when (viewModel.gameState) {
+        when (gameState) {
             GameState.WIN -> {
                 Text(
                     text = "Congratulations, you won!",
@@ -73,7 +75,7 @@ fun GuessSection(
                     onGuessSubmit = {
                         if (inputText.isNotBlank()) {
                             onGuessSubmit(inputText)
-                            viewModel.guesses.add(inputText)
+                            quizzViewModel.guesses.add(inputText)
                             inputText = ""
                         }
                     }
@@ -102,7 +104,7 @@ fun GuessSection(
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Previous Guesses:", color = Color.White)
-        viewModel.guesses.reversed().forEach { guess ->
+        quizzViewModel.guesses.reversed().forEach { guess ->
             val isCorrect = guess.equals(correctGuessName, ignoreCase = true)
             val backgroundColor = if (isCorrect) Color(0xFF00C853) else Color(0xFFbf4e4e)
             Box(

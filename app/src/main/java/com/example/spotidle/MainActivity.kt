@@ -132,10 +132,7 @@ fun MainScreen(
     username: String,
     fourRandTracksId: List<String>
 ) {
-    val musicGameViewModel: GameViewModel = viewModel(key = "musicGameViewModel")
-    val lyricsGameViewModel: GameViewModel = viewModel(key = "lyricsGameViewModel")
-    val albumGameViewModel: GameViewModel = viewModel(key = "albumGameViewModel")
-    val artistGameViewModel: GameViewModel = viewModel(key = "artistGameViewModel")
+    val gameViewModel: GameViewModel = viewModel()
 
     val navController = rememberNavController()
     if(!isSpotifyConnected) {
@@ -175,38 +172,55 @@ fun MainScreen(
                     username = username,
                     navController = navController,
                     disconnectSpotify = disconnectSpotify,
-                    musicGameViewModel = musicGameViewModel,
-                    lyricsGameViewModel = lyricsGameViewModel,
-                    albumGameViewModel = albumGameViewModel,
-                    artistGameViewModel = artistGameViewModel
+                    gameViewModel = gameViewModel,
                 )
             }
             composable("lyricsGuess") {
                 LyricsGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[0],
-                    gameViewModel = lyricsGameViewModel
+                    gameValidate = {
+                        validated ->
+                        val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
+                        gameViewModel.setGameState("lyricsGuess", newGameState)
+                    },
+                    gameState = gameViewModel.getGameState("lyricsGuess")
                 )
             }
             composable("musicGuess") {
                 MusicGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[1],
-                    gameViewModel = musicGameViewModel
+                    gameValidate = {
+                        validated ->
+                        val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
+                        gameViewModel.setGameState("musicGuess", newGameState)
+                    },
+                    gameState = gameViewModel.getGameState("musicGuess")
                 )
             }
             composable("albumGuess") {
                 AlbumGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[2],
-                    gameViewModel = albumGameViewModel
+                    gameValidate = {
+                        validated ->
+                        val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
+                        gameViewModel.setGameState("albumGuess", newGameState)
+                    },
+                    gameState = gameViewModel.getGameState("albumGuess")
                 )
             }
             composable("artistGuess") {
                 ArtistGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[3],
-                    gameViewModel = artistGameViewModel
+                    gameValidate = {
+                        validated ->
+                        val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
+                        gameViewModel.setGameState("artistGuess", newGameState)
+                    },
+                    gameState = gameViewModel.getGameState("artistGuess")
                 )
             }
         }

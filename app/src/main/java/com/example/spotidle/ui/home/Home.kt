@@ -31,10 +31,7 @@ fun HomeScreen(
     username: String,
     navController: NavController,
     disconnectSpotify: () -> Unit,
-    musicGameViewModel: GameViewModel,
-    lyricsGameViewModel: GameViewModel,
-    albumGameViewModel: GameViewModel,
-    artistGameViewModel: GameViewModel
+    gameViewModel: GameViewModel,
 ) {
     fun getButtonColor(gameState: GameState): Color {
         return when (gameState) {
@@ -59,6 +56,9 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Hello, $username !", color = Color.White)
+            for (gameState in gameViewModel.getGameStates()) {
+                Text(text = gameState.toString(), color = Color.White)
+            }
             Spacer(modifier = Modifier.size(40.dp))
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -67,7 +67,7 @@ fun HomeScreen(
                     onClick = { navController.navigate("musicGuess") },
                     modifier = Modifier
                         .size(140.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(musicGameViewModel.gameState)),
+                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(gameViewModel.getGameState("musicGuess"))),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Column(
@@ -92,7 +92,7 @@ fun HomeScreen(
                     onClick = { navController.navigate("lyricsGuess") },
                     modifier = Modifier
                         .size(140.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(lyricsGameViewModel.gameState)),
+                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(gameViewModel.getGameState("lyricsGuess"))),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Column(
@@ -122,7 +122,7 @@ fun HomeScreen(
                     onClick = { navController.navigate("albumGuess") },
                     modifier = Modifier
                         .size(140.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(albumGameViewModel.gameState)),
+                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(gameViewModel.getGameState("albumGuess"))),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Column(
@@ -147,7 +147,7 @@ fun HomeScreen(
                     onClick = { navController.navigate("artistGuess") },
                     modifier = Modifier
                         .size(140.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(artistGameViewModel.gameState)),
+                    colors = ButtonDefaults.buttonColors(containerColor = getButtonColor(gameViewModel.getGameState("artistGuess"))),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Column(
