@@ -60,9 +60,9 @@ fun MusicGuessScreen(
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            correctSongName = musicManager.getTitleName(idTrack)
-            sampleUrl = musicManager.getSampleSong(idTrack)
-            albumCoverUrl = albumManager.getAlbumCover(musicManager.getAlbumName(trackId = idTrack).first)
+            correctSongName = musicManager.getTitle(idTrack)
+            sampleUrl = musicManager.getTrackSample(idTrack)
+            albumCoverUrl = albumManager.getAlbumCover(musicManager.getAlbumIdName(trackId = idTrack).first)
         } catch (e: Exception) {
             Log.e("Spotify", "Failed to get title details: ${e.message}")
         }

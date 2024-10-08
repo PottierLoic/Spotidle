@@ -26,7 +26,7 @@ class AlbumManager {
                     .getString("url")
                 albumCover
             } catch (e: JSONException) {
-                Log.e("Spotify", "Failed to parse album name: ${e.message}")
+                Log.e("Spotify", "Failed to parse album cover: ${e.message}")
                 Log.e("Spotify", "Response was: $responseBody")
                 ""
             }
