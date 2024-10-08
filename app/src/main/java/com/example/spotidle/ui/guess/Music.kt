@@ -1,6 +1,6 @@
 package com.example.spotidle.ui.guess
 
-import GameViewModel
+import QuizzViewModel
 import android.media.MediaPlayer
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -47,8 +47,11 @@ fun MusicGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameViewModel: GameViewModel = viewModel()
+    gameValidate: (validated: Boolean) -> Unit,
+    gameState: GameState,
 ) {
+    val quizzViewModel: QuizzViewModel = viewModel()
+
     val trackManager = TrackManager()
     val albumManager = AlbumManager()
     var correctSongName by remember { mutableStateOf("") }
@@ -81,7 +84,7 @@ fun MusicGuessScreen(
                 .aspectRatio(1f)
                 .background(Color.Transparent)
         ) {
-            if (gameViewModel.gameState == GameState.WIN || gameViewModel.gameState == GameState.LOOSE) {
+            if (gameState == GameState.WIN || gameState == GameState.LOOSE) {
                 Image(
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(LocalContext.current).data(data = albumCoverUrl)
@@ -137,15 +140,16 @@ fun MusicGuessScreen(
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    gameViewModel.gameState = GameState.WIN
+                    gameValidate(true)
                 } else {
-                    gameViewModel.attempts += 1
-                    if (gameViewModel.attempts >= 4) {
-                        gameViewModel.gameState = GameState.LOOSE
+                    quizzViewModel.attempts += 1
+                    if (quizzViewModel.attempts >= 4) {
+                        gameValidate(false)
                     }
                 }
             },
-            viewModel = gameViewModel
+            gameState = gameState,
+            quizzViewModel = quizzViewModel
         )
     }
 

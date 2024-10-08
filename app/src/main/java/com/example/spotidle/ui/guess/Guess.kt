@@ -1,6 +1,6 @@
 package com.example.spotidle.ui.guess
 
-import GameViewModel
+import QuizzViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,8 +43,10 @@ fun LyricsGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameViewModel: GameViewModel = viewModel()
+    gameValidate: (validated: Boolean) -> Unit,
+    gameState: GameState,
 ) {
+    val quizzViewModel: QuizzViewModel = viewModel()
 
     val context = LocalContext.current
     val correctSongName by remember { mutableStateOf("Doucement") } // TODO CHANGE
@@ -74,21 +75,21 @@ fun LyricsGuessScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-//        GuessSection(correctGuessName = "Doucement") // TODO : remove
         GuessSection(
             correctGuessName = correctSongName,
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    gameViewModel.gameState = GameState.WIN
+                    gameValidate(true)
                 } else {
-                    gameViewModel.attempts += 1
-                    if (gameViewModel.attempts >= 4) {
-                        gameViewModel.gameState = GameState.LOOSE
+                    quizzViewModel.attempts += 1
+                    if (quizzViewModel.attempts >= 4) {
+                        gameValidate(false)
                     }
                 }
             },
-            viewModel = gameViewModel
+            gameState = gameState,
+            quizzViewModel = quizzViewModel
         )
     }
 }

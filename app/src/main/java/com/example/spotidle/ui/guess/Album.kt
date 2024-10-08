@@ -1,6 +1,6 @@
 package com.example.spotidle.ui.guess
 
-import GameViewModel
+import QuizzViewModel
 import android.util.Log
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -40,21 +40,22 @@ fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameViewModel: GameViewModel = viewModel()
-
+    gameValidate: (validated: Boolean) -> Unit,
+    gameState: GameState,
 ) {
     val trackManager = TrackManager()
+    val quizzViewModel: QuizzViewModel = viewModel()
     val albumManager = AlbumManager()
     val context = LocalContext.current
     var correctAlbumName by remember { mutableStateOf("") }
     var coverImageUrl by remember { mutableStateOf("") }
     var blurAmount by remember { mutableFloatStateOf(25f) }
 
-    LaunchedEffect(gameViewModel.attempts, gameViewModel.gameState) {
-        blurAmount = when (gameViewModel.gameState) {
+    LaunchedEffect(quizzViewModel.attempts, quizzViewModel.gameState) {
+        blurAmount = when (quizzViewModel.gameState) {
             GameState.WIN, GameState.LOOSE -> 0f
             GameState.PLAYING -> {
-                (25f - 5f * gameViewModel.attempts).coerceAtLeast(0f)
+                (25f - 5f * quizzViewModel.attempts).coerceAtLeast(0f)
             }
         }
     }
@@ -94,22 +95,22 @@ fun AlbumGuessScreen(
         Spacer(modifier = Modifier.height(16.dp))
         GuessSection(
             correctGuessName = correctAlbumName,
+            toGuess = "album",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctAlbumName, ignoreCase = true)) {
                     blurAmount = 0f
-                    gameViewModel.gameState = GameState.WIN
+                    gameValidate(true)
                 } else {
-                    gameViewModel.attempts += 1
-                    if (gameViewModel.attempts < 4) {
-                        blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
-                    } else if (gameViewModel.attempts == 4) {
-                        gameViewModel.gameState = GameState.LOOSE
+                    quizzViewModel.attempts += 1
+                    blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
+                    if (quizzViewModel.attempts >= 4) {
                         blurAmount = 0f
+                        gameValidate(false)
                     }
                 }
             },
-            toGuess = "album",
-            viewModel = gameViewModel
+            gameState = gameState,
+            quizzViewModel = quizzViewModel
         )
     }
 }
