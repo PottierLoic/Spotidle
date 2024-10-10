@@ -48,7 +48,11 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     disconnectSpotify: () -> Unit,
-    gameViewModel: GameViewModel,
+    musicViewModel: GameViewModel,
+    lyricsViewModel: GameViewModel,
+    albumViewModel: GameViewModel,
+    artistViewModel: GameViewModel,
+
     tracksList: List<String>
 ) {
     val userManager = UserManager()
@@ -121,7 +125,7 @@ fun HomeScreen(
                             .size(140.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = getButtonColor(
-                                gameViewModel.getGameState("musicGuess")
+                                musicViewModel.gameState
                             )
                         ),
                         shape = RoundedCornerShape(8.dp)
@@ -150,7 +154,7 @@ fun HomeScreen(
                             .size(140.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = getButtonColor(
-                                gameViewModel.getGameState("lyricsGuess")
+                                lyricsViewModel.gameState
                             )
                         ),
                         shape = RoundedCornerShape(8.dp)
@@ -184,7 +188,7 @@ fun HomeScreen(
                             .size(140.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = getButtonColor(
-                                gameViewModel.getGameState("albumGuess")
+                                albumViewModel.gameState
                             )
                         ),
                         shape = RoundedCornerShape(8.dp)
@@ -213,7 +217,7 @@ fun HomeScreen(
                             .size(140.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = getButtonColor(
-                                gameViewModel.getGameState("artistGuess")
+                                artistViewModel.gameState
                             )
                         ),
                         shape = RoundedCornerShape(8.dp)

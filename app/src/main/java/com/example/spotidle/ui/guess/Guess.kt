@@ -1,6 +1,6 @@
 package com.example.spotidle.ui.guess
 
-import QuizzViewModel
+import GameViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,11 +43,8 @@ fun LyricsGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameValidate: (validated: Boolean) -> Unit,
-    gameState: GameState,
+    gameViewModel: GameViewModel
 ) {
-    val quizzViewModel: QuizzViewModel = viewModel()
-
     val context = LocalContext.current
     val correctSongName by remember { mutableStateOf("Doucement") } // TODO CHANGE
     val accessToken = "Bearer I2F2_DAHrB2NqZWmOOAceHfg-HJzNM9F83sJnRbgDdKVEfrxJNcpL764wI86SLu9" // Remplacez par votre access token
@@ -80,16 +77,15 @@ fun LyricsGuessScreen(
             toGuess = "song",
             onGuessSubmit = { guess ->
                 if (guess.equals(correctSongName, ignoreCase = true)) {
-                    gameValidate(true)
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    quizzViewModel.attempts += 1
-                    if (quizzViewModel.attempts >= 4) {
-                        gameValidate(false)
+                    gameViewModel.attempts += 1
+                    if (gameViewModel.attempts >= 4) {
+                        gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
-            gameState = gameState,
-            quizzViewModel = quizzViewModel
+            gameViewModel = gameViewModel
         )
     }
 }

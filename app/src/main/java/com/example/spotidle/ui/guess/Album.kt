@@ -1,6 +1,6 @@
 package com.example.spotidle.ui.guess
 
-import QuizzViewModel
+import GameViewModel
 import android.util.Log
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -40,22 +40,20 @@ fun AlbumGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameValidate: (validated: Boolean) -> Unit,
-    gameState: GameState,
+    gameViewModel: GameViewModel
 ) {
     val trackManager = TrackManager()
-    val quizzViewModel: QuizzViewModel = viewModel()
     val albumManager = AlbumManager()
     val context = LocalContext.current
     var correctAlbumName by remember { mutableStateOf("") }
     var coverImageUrl by remember { mutableStateOf("") }
     var blurAmount by remember { mutableFloatStateOf(25f) }
 
-    LaunchedEffect(quizzViewModel.attempts, quizzViewModel.gameState) {
-        blurAmount = when (quizzViewModel.gameState) {
+    LaunchedEffect(gameViewModel.attempts, gameViewModel.gameState) {
+        blurAmount = when (gameViewModel.gameState) {
             GameState.WIN, GameState.LOOSE -> 0f
             GameState.PLAYING -> {
-                (25f - 5f * quizzViewModel.attempts).coerceAtLeast(0f)
+                (25f - 5f * gameViewModel.attempts).coerceAtLeast(0f)
             }
         }
     }
@@ -99,18 +97,17 @@ fun AlbumGuessScreen(
             onGuessSubmit = { guess ->
                 if (guess.equals(correctAlbumName, ignoreCase = true)) {
                     blurAmount = 0f
-                    gameValidate(true)
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    quizzViewModel.attempts += 1
+                    gameViewModel.attempts += 1
                     blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
-                    if (quizzViewModel.attempts >= 4) {
+                    if (gameViewModel.attempts >= 4) {
                         blurAmount = 0f
-                        gameValidate(false)
+                        gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
-            gameState = gameState,
-            quizzViewModel = quizzViewModel
+            gameViewModel = gameViewModel
         )
     }
 }

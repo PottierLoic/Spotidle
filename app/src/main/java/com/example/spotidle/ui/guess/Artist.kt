@@ -1,6 +1,6 @@
 package com.example.spotidle.ui.guess
 
-import QuizzViewModel
+import GameViewModel
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,10 +45,8 @@ fun ArtistGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameValidate: (validated: Boolean) -> Unit,
-    gameState: GameState,
+    gameViewModel: GameViewModel
 ) {
-    val quizzViewModel: QuizzViewModel = viewModel()
     val albumManager = AlbumManager()
     val trackManager = TrackManager()
     val artistManager = ArtistManager()
@@ -90,7 +88,7 @@ fun ArtistGuessScreen(
                 .aspectRatio(1f)
                 .background(Color(0xFF1ED760))
         ) {
-            if (quizzViewModel.attempts >= 0) {
+            if (gameViewModel.attempts >= 0) {
                 Image(
                     painter = rememberAsyncImagePainter(oldestAlbumCoverUrl),
                     contentDescription = "Album Cover",
@@ -101,7 +99,7 @@ fun ArtistGuessScreen(
                         .background(Color.Transparent)
                 )
             }
-            if (quizzViewModel.attempts >= 1) {
+            if (gameViewModel.attempts >= 1) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
@@ -117,7 +115,7 @@ fun ArtistGuessScreen(
                     )
                 }
             }
-            if (quizzViewModel.attempts >= 2) {
+            if (gameViewModel.attempts >= 2) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(0.5f)
@@ -143,7 +141,7 @@ fun ArtistGuessScreen(
                     }
                 }
             }
-            if (quizzViewModel.attempts >= 3) {
+            if (gameViewModel.attempts >= 3) {
                 Image(
                     painter = rememberAsyncImagePainter(profilePicture),
                     contentDescription = "Artist Profile Picture",
@@ -160,16 +158,15 @@ fun ArtistGuessScreen(
             toGuess = "artist",
             onGuessSubmit = { guess ->
                 if (guess.equals(artistName, ignoreCase = true)) {
-                    gameValidate(true)
+                    gameViewModel.gameState = GameState.WIN
                 } else {
-                    quizzViewModel.attempts += 1
-                    if (quizzViewModel.attempts >= 4) {
-                        gameValidate(false)
+                    gameViewModel.attempts += 1
+                    if (gameViewModel.attempts >= 4) {
+                        gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
-            gameState = gameState,
-            quizzViewModel = quizzViewModel
+            gameViewModel = gameViewModel
         )
     }
 
