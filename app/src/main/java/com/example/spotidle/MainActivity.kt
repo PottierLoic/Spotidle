@@ -29,9 +29,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.*
-
 import com.example.spotidle.spotifyApiManager.AuthManager
 import com.example.spotidle.spotifyApiManager.UserManager
+import android.content.Context
+import android.content.SharedPreferences
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -47,8 +48,34 @@ class MainActivity : ComponentActivity() {
     private var userManager: UserManager = UserManager()
     private var fourRandTracksId: MutableState<List<String>> = mutableStateOf(emptyList())
 
+    fun saveToken(context: Context, token: String) {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("auth_token", token)
+        editor.apply()
+    }
+
+    fun getToken(context: Context): String? {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("auth_token", null)
+    }
+
+    fun removeToken(context: Context) {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.remove("auth_token")
+        editor.apply()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val storedToken = getToken(this)
+        if (storedToken != null) {
+            TOKEN = storedToken
+            isSpotifyConnected.value = true
+            fetchLikedTracks()
+        }
         setContent {
             SpotidleTheme {
                 MainScreen(
@@ -61,8 +88,13 @@ class MainActivity : ComponentActivity() {
                             onFailure = { throwable ->
                                 Log.e("MainActivity", "Failed to connect: ${throwable.message}")
                             }
-                        ) },
-                    disconnectSpotify = { authManager.disconnectSpotify(spotifyAppRemote, isSpotifyConnected) },
+                        )
+                    },
+                    disconnectSpotify = {
+                        authManager.disconnectSpotify(spotifyAppRemote, isSpotifyConnected)
+                        removeToken(this)
+                        isSpotifyConnected.value = false
+                    },
                     isSpotifyConnected = isSpotifyConnected.value,
                     username = username.value,
                     fourRandTracksId = fourRandTracksId.value
@@ -89,6 +121,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun fetchLikedTracks() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val tracks: List<String> = userManager.fetchLikedTracks()
+                if (tracks.size < 4) {
+                    throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
+                }
+                fourRandTracksId.value = tracks.shuffled().take(4)
+            } catch (e: Exception) {
+                Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
+            }
+        }
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
@@ -98,19 +144,10 @@ class MainActivity : ComponentActivity() {
             intent,
             onSuccess = { token ->
                 TOKEN = token
+                saveToken(this, token)
                 isSpotifyConnected.value = true
                 setUserName()
-                CoroutineScope(Dispatchers.Main).launch {
-                    try {
-                        val tracks: List<String> = userManager.fetchLikedTracks()
-                        if (tracks.size < 4) {
-                            throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
-                        }
-                        fourRandTracksId.value = tracks.shuffled().take(4)
-                    } catch (e: Exception) {
-                        Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
-                    }
-                }
+                fetchLikedTracks()
             },
             onError = { error ->
                 Log.e("Spotify", "Authorization error: $error")
@@ -176,7 +213,7 @@ fun MainScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[0],
                     gameValidate = {
-                        validated ->
+                            validated ->
                         val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
                         gameViewModel.setGameState("lyricsGuess", newGameState)
                     },
@@ -188,7 +225,7 @@ fun MainScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[1],
                     gameValidate = {
-                        validated ->
+                            validated ->
                         val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
                         gameViewModel.setGameState("musicGuess", newGameState)
                     },
@@ -200,7 +237,7 @@ fun MainScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[2],
                     gameValidate = {
-                        validated ->
+                            validated ->
                         val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
                         gameViewModel.setGameState("albumGuess", newGameState)
                     },
@@ -212,7 +249,7 @@ fun MainScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[3],
                     gameValidate = {
-                        validated ->
+                            validated ->
                         val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
                         gameViewModel.setGameState("artistGuess", newGameState)
                     },
