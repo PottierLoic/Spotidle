@@ -53,6 +53,13 @@ fun GuessInputField(
         it.contains(query, ignoreCase = true)
     }
 
+
+    fun onGuessSubmitLocal() {
+        onGuessSubmit()
+        query = ""
+        //Todo, vider le champ
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -120,7 +127,7 @@ fun GuessInputField(
         }
 
         Button(
-            onClick = onGuessSubmit,
+            onClick = { onGuessSubmitLocal() },
             modifier = Modifier.padding(top = 16.dp)
         ) {
             Text(text = "Submit Guess")
