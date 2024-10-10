@@ -201,7 +201,6 @@ fun MainScreen(
         ) {
             composable("home") {
                 HomeScreen(
-                    username = username,
                     navController = navController,
                     disconnectSpotify = disconnectSpotify,
                     gameViewModel = gameViewModel,
@@ -213,7 +212,7 @@ fun MainScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[0],
                     gameValidate = {
-                            validated ->
+                        validated ->
                         val newGameState: GameState = if (validated) GameState.WIN else GameState.LOOSE
                         gameViewModel.setGameState("lyricsGuess", newGameState)
                     },

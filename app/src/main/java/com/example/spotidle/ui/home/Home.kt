@@ -26,6 +26,11 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Man
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Speaker
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
@@ -33,16 +38,28 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.spotidle.GameState
+import com.example.spotidle.spotifyApiManager.UserManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    username: String,
     navController: NavController,
     disconnectSpotify: () -> Unit,
     gameViewModel: GameViewModel,
     tracksList: List<String>
 ) {
+    val userManager = UserManager()
+    var username by remember { mutableStateOf("")}
+
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            username = userManager.getUserName()
+        }
+    }
+
     fun getButtonColor(gameState: GameState): Color {
         return when (gameState) {
             GameState.WIN -> Color(0xFF00C853)
