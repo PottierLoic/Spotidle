@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.spotidle.spotifyApiManager.TrackManager
 import coil.compose.rememberAsyncImagePainter
@@ -63,7 +62,7 @@ fun MusicGuessScreen(
         try {
             correctSongName = trackManager.getTitle(idTrack)
             sampleUrl = trackManager.getTrackSample(idTrack)
-            albumCoverUrl = albumManager.getAlbumCover(trackManager.getAlbumIdName(trackId = idTrack).first)
+            albumCoverUrl = albumManager.getAlbumCover(trackManager.getAlbumIdNameFromTrack(trackId = idTrack).first)
         } catch (e: Exception) {
             Log.e("Spotify", "Failed to get title details: ${e.message}")
         }
@@ -102,7 +101,6 @@ fun MusicGuessScreen(
                 onClick = {
                     isPlaying = !isPlaying;
                     if (!isPlaying) mediaPlayer?.pause() else mediaPlayer?.start();
-                    Log.d("MOI", "Reponse: $correctSongName")
                     if (isPlaying) {
                         if (sampleUrl != null && mediaPlayer == null) {
                             mediaPlayer = MediaPlayer().apply {
@@ -155,7 +153,5 @@ fun MusicGuessScreen(
             mediaPlayer?.release()
             mediaPlayer = null
         }
-        // TODO: Not :"album name" but "song name"
-        // Todo: Close the mediaplayer if "<-" button hit
     }
 }

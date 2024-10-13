@@ -36,7 +36,7 @@ import android.content.SharedPreferences
 
 class MainActivity : ComponentActivity() {
     companion object {
-        const val CLIENT_ID = "71cb703af64d40e889f5a274b3986da7"
+        const val CLIENT_ID = "fe1e042e58414bbfbac7e10a48dde4db"
         const val REDIRECT_URI = "spotidle://callback"
         const val REQUEST_CODE = 1337
         var TOKEN = ""
@@ -96,7 +96,6 @@ class MainActivity : ComponentActivity() {
                         isSpotifyConnected.value = false
                     },
                     isSpotifyConnected = isSpotifyConnected.value,
-                    username = username.value,
                     fourRandTracksId = fourRandTracksId.value
                 )
             }
@@ -124,7 +123,7 @@ class MainActivity : ComponentActivity() {
     private fun fetchLikedTracks() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val tracks: List<String> = userManager.fetchLikedTracks()
+                val tracks: List<String> = userManager.getLikedTracksIds()
                 if (tracks.size < 4) {
                     throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
                 }
@@ -161,7 +160,6 @@ fun MainScreen(
     spotifyLogin: () -> Unit,
     disconnectSpotify: () -> Unit,
     isSpotifyConnected: Boolean,
-    username: String,
     fourRandTracksId: List<String>
 ) {
     val musicGameViewModel: GameViewModel = viewModel(key = "musicGameViewModel")

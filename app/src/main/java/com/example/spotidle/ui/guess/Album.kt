@@ -60,7 +60,7 @@ fun AlbumGuessScreen(
 
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            val pair: Pair<String, String> = trackManager.getAlbumIdName(idTrack)
+            val pair: Pair<String, String> = trackManager.getAlbumIdNameFromTrack(idTrack)
             correctAlbumName = pair.second
             coverImageUrl = albumManager.getAlbumCover(pair.first)
         } catch (e: Exception) {

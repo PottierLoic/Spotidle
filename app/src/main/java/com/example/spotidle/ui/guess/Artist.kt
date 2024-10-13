@@ -55,23 +55,21 @@ fun ArtistGuessScreen(
     var artistName by remember { mutableStateOf("") }
     var oldestAlbumCoverUrl by remember { mutableStateOf("") }
     var popularSong by remember { mutableStateOf("") }
-    var popularity by remember { mutableStateOf("") }
     var musicalGenre = remember { mutableStateListOf<String>() }
     var profilePicture by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val pair: Pair<String, String> = trackManager.getArtistIdName(idTrack)
+                val pair: Pair<String, String> = trackManager.getArtistIdNameFromTrack(idTrack)
                 val artistId = pair.first
                 artistName = pair.second
                 oldestAlbumCoverUrl = albumManager.getAlbumCover(artistManager.getOldestAlbumId(artistId))
                 val popularSongPair: Pair<String, String> = artistManager.getAFamousTrackIdName(artistId)
                 popularSong = popularSongPair.second
-                popularity = trackManager.getPopularity(popularSongPair.first)
                 musicalGenre.clear()
                 musicalGenre.addAll(artistManager.getGenres(artistId))
-                Log.d("LOIC", musicalGenre.joinToString(", "))
+                profilePicture = artistManager.getProfilePicture(artistId)
                 profilePicture = artistManager.getProfilePicture(artistId)
             } catch (e: Exception) {
                 Log.e("Spotify", "Failed to get artist details: ${e.message}")
