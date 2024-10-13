@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -58,6 +59,8 @@ fun ArtistGuessScreen(
     var musicalGenre = remember { mutableStateListOf<String>() }
     var profilePicture by remember { mutableStateOf("") }
 
+    var displayedHint by remember { mutableStateOf(0) }
+
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
@@ -86,69 +89,65 @@ fun ArtistGuessScreen(
                 .aspectRatio(1f)
                 .background(Color(0xFF1ED760))
         ) {
-            if (gameViewModel.attempts >= 0) {
-                Image(
-                    painter = rememberAsyncImagePainter(oldestAlbumCoverUrl),
-                    contentDescription = "Album Cover",
-                    modifier = Modifier
-                        .fillMaxHeight(0.5f)
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.TopStart)
-                        .background(Color.Transparent)
-                )
-            }
-            if (gameViewModel.attempts >= 1) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight(0.5f)
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = popularSong,
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        modifier = Modifier.align(Alignment.Center)
+            when (displayedHint) {
+                0 -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(oldestAlbumCoverUrl),
+                        contentDescription = "Album Cover",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent)
                     )
                 }
-            }
-            if (gameViewModel.attempts >= 2) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight(0.5f)
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.BottomStart)
-                        .padding(8.dp)
-                ) {
-                    Column(
+                1 -> {
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                            .fillMaxSize()
+                            .background(Color.Transparent)
+                            .padding(8.dp)
                     ) {
-                        musicalGenre.forEach { genre ->
-                            Text(
-                                text = genre,
-                                color = Color.White,
-                                fontSize = 15.sp,
-                                modifier = Modifier
-                                    .padding(vertical = 4.dp)
-                                    .align(Alignment.CenterHorizontally)
-                            )
+                        Text(
+                            text = popularSong,
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+                2 -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent)
+                            .padding(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            musicalGenre.forEach { genre ->
+                                Text(
+                                    text = genre,
+                                    color = Color.White,
+                                    fontSize = 20.sp,
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp)
+                                        .align(Alignment.CenterHorizontally)
+                                )
+                            }
                         }
                     }
                 }
-            }
-            if (gameViewModel.attempts >= 3) {
-                Image(
-                    painter = rememberAsyncImagePainter(profilePicture),
-                    contentDescription = "Artist Profile Picture",
-                    modifier = Modifier
-                        .fillMaxHeight(0.5f)
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.BottomEnd)
-                        .background(Color.Transparent)
-                )
+                in 3..4 -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(profilePicture),
+                        contentDescription = "Artist Profile Picture",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent)
+                    )
+                }
             }
         }
         GuessSection(
@@ -159,12 +158,18 @@ fun ArtistGuessScreen(
                     gameViewModel.gameState = GameState.WIN
                 } else {
                     gameViewModel.attempts += 1
+                    displayedHint += 1
                     if (gameViewModel.attempts >= 4) {
                         gameViewModel.gameState = GameState.LOOSE
                     }
                 }
             },
-            gameViewModel = gameViewModel
+            gameViewModel = gameViewModel,
+            onHintClick = { hintIndex ->
+                if (hintIndex <= gameViewModel.attempts) {
+                    displayedHint = hintIndex
+                }
+            }
         )
     }
 

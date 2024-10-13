@@ -2,6 +2,7 @@ package com.example.spotidle.ui.guess.components
 
 import GameViewModel
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -19,7 +20,8 @@ fun GuessSection(
     correctGuessName: String,
     onGuessSubmit: (String) -> Unit = {},
     toGuess: String,
-    gameViewModel: GameViewModel
+    gameViewModel: GameViewModel,
+    onHintClick: (Int) -> Unit = {}
 ) {
     var inputText by remember { mutableStateOf("") }
     var guessState by remember { mutableStateOf(listOf(Color.Gray, Color.Gray, Color.Gray, Color.Gray)) }
@@ -38,7 +40,11 @@ fun GuessSection(
                     if (index < gameViewModel.attempts) Color(0xFFbf4e4e) else Color.Gray
                 }
                 GameState.PLAYING -> {
-                    if (index < gameViewModel.attempts) Color(0xFFbf4e4e) else Color.Gray
+                    when {
+                        index < gameViewModel.attempts -> Color(0xFFbf4e4e)
+                        index == gameViewModel.attempts -> Color(0xFFa19847)
+                        else -> Color.Gray
+                    }
                 }
             }
         }
@@ -62,7 +68,8 @@ fun GuessSection(
                         .background(
                             color = guessState[i - 1],
                             shape = RoundedCornerShape(4.dp)
-                        ),
+                        )
+                        .clickable { onHintClick(i - 1) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(text = "$i", fontSize = 16.sp, color = Color.White)

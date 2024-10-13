@@ -36,7 +36,7 @@ import android.content.SharedPreferences
 
 class MainActivity : ComponentActivity() {
     companion object {
-        const val CLIENT_ID = "fe1e042e58414bbfbac7e10a48dde4db"
+        const val CLIENT_ID = "71cb703af64d40e889f5a274b3986da7"
         const val REDIRECT_URI = "spotidle://callback"
         const val REQUEST_CODE = 1337
         var TOKEN = ""
