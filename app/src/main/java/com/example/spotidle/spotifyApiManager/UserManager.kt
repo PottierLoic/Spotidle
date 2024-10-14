@@ -42,7 +42,10 @@ class UserManager() {
                 if (response.next == null) { break }
                 offset += limit
             }
-            TrackInfo(ids.toList(), names.toList(), artists.toList(), albums.toList())
+            TrackInfo(ids.toList().distinct(),
+                      names.toList().distinct(),
+                      artists.toList().distinct(),
+                      albums.toList().distinct())
         } catch (e: Exception) {
             Log.e("Spotify", "Failed to fetch user liked track: ${e.message}")
             TrackInfo(emptyList(), emptyList(), emptyList(), emptyList())
