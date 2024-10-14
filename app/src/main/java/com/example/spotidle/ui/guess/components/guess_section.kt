@@ -21,7 +21,8 @@ fun GuessSection(
     onGuessSubmit: (String) -> Unit = {},
     toGuess: String,
     gameViewModel: GameViewModel,
-    onHintClick: (Int) -> Unit = {}
+    onHintClick: (Int) -> Unit = {},
+    suggestions: List<String>
 ) {
     var inputText by remember { mutableStateOf("") }
     var guessState by remember { mutableStateOf(listOf(Color.Gray, Color.Gray, Color.Gray, Color.Gray)) }
@@ -102,7 +103,8 @@ fun GuessSection(
                             gameViewModel.guesses.add(inputText)
                             inputText = ""
                         }
-                    }
+                    },
+                    suggestions = suggestions
                 )
             }
         }

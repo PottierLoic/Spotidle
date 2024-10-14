@@ -46,7 +46,8 @@ fun MusicGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameViewModel: GameViewModel
+    gameViewModel: GameViewModel,
+    suggestions: List<String>
 ) {
 
     val trackManager = TrackManager()
@@ -144,7 +145,8 @@ fun MusicGuessScreen(
                     }
                 }
             },
-            gameViewModel = gameViewModel
+            gameViewModel = gameViewModel,
+            suggestions = suggestions
         )
     }
 

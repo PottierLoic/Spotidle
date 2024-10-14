@@ -33,6 +33,8 @@ import com.example.spotidle.spotifyApiManager.AuthManager
 import com.example.spotidle.spotifyApiManager.UserManager
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.spotidle.spotifyApiManager.Track
+import com.example.spotidle.spotifyApiManager.TrackInfo
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -47,6 +49,10 @@ class MainActivity : ComponentActivity() {
     private var authManager: AuthManager = AuthManager(this)
     private var userManager: UserManager = UserManager()
     private var fourRandTracksId: MutableState<List<String>> = mutableStateOf(emptyList())
+    private var tracksSuggestions: List<String> = emptyList()
+    private var albumsSuggestions: List<String> = emptyList()
+    private var artistsSuggestions: List<String> = emptyList()
+
 
     fun saveToken(context: Context, token: String) {
         val sharedPreferences: SharedPreferences = context.getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE)
@@ -96,7 +102,10 @@ class MainActivity : ComponentActivity() {
                         isSpotifyConnected.value = false
                     },
                     isSpotifyConnected = isSpotifyConnected.value,
-                    fourRandTracksId = fourRandTracksId.value
+                    fourRandTracksId = fourRandTracksId.value,
+                    tracksSuggestions = tracksSuggestions,
+                    albumsSuggestions = albumsSuggestions,
+                    artistsSuggestions = artistsSuggestions
                 )
             }
         }
@@ -123,7 +132,11 @@ class MainActivity : ComponentActivity() {
     private fun fetchLikedTracks() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val tracks: List<String> = userManager.getLikedTracksIds()
+                val trackInfo: TrackInfo =  userManager.getLikedTracksIds()
+                val tracks: List<String> = trackInfo.ids
+                tracksSuggestions = trackInfo.names
+                albumsSuggestions = trackInfo.albums
+                artistsSuggestions = trackInfo.artists
                 if (tracks.size < 4) {
                     throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
                 }
@@ -160,7 +173,10 @@ fun MainScreen(
     spotifyLogin: () -> Unit,
     disconnectSpotify: () -> Unit,
     isSpotifyConnected: Boolean,
-    fourRandTracksId: List<String>
+    fourRandTracksId: List<String>,
+    tracksSuggestions: List<String>,
+    artistsSuggestions: List<String>,
+    albumsSuggestions: List<String>
 ) {
     val musicGameViewModel: GameViewModel = viewModel(key = "musicGameViewModel")
     val lyricsGameViewModel: GameViewModel = viewModel(key = "lyricsGameViewModel")
@@ -215,28 +231,32 @@ fun MainScreen(
                 LyricsGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[0],
-                    gameViewModel = lyricsGameViewModel
+                    gameViewModel = lyricsGameViewModel,
+                    suggestions = tracksSuggestions
                 )
             }
             composable("musicGuess") {
                 MusicGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[1],
-                    gameViewModel = musicGameViewModel
+                    gameViewModel = musicGameViewModel,
+                    suggestions = tracksSuggestions
                 )
             }
             composable("albumGuess") {
                 AlbumGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[2],
-                    gameViewModel = albumGameViewModel
-                    )
+                    gameViewModel = albumGameViewModel,
+                    suggestions = albumsSuggestions
+                )
             }
             composable("artistGuess") {
                 ArtistGuessScreen(
                     navController = navController,
                     idTrack = fourRandTracksId[3],
-                    gameViewModel = artistGameViewModel
+                    gameViewModel = artistGameViewModel,
+                    suggestions = artistsSuggestions
                 )
             }
         }

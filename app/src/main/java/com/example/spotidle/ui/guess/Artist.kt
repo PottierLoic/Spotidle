@@ -46,7 +46,8 @@ fun ArtistGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameViewModel: GameViewModel
+    gameViewModel: GameViewModel,
+    suggestions: List<String>
 ) {
     val albumManager = AlbumManager()
     val trackManager = TrackManager()
@@ -169,7 +170,8 @@ fun ArtistGuessScreen(
                 if (hintIndex <= gameViewModel.attempts) {
                     displayedHint = hintIndex
                 }
-            }
+            },
+            suggestions = suggestions
         )
     }
 

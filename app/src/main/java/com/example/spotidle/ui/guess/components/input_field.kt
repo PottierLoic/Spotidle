@@ -41,10 +41,10 @@ fun GuessInputField(
     inputText: String,
     onInputChange: (String) -> Unit,
     onGuessSubmit: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    suggestions: List<String>
 ) {
 
-    val suggestions: List<String> = listOf("song a", "song b", "song c", "song d", "song e", "song f", "song g", "song h", "song i", "song j") // TODO use cha fetch
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf(inputText) }
     var textFieldSize by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }

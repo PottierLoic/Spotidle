@@ -34,7 +34,8 @@ fun LyricsGuessScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     idTrack: String,
-    gameViewModel: GameViewModel
+    gameViewModel: GameViewModel,
+    suggestions: List<String>
 ) {
     val context = LocalContext.current
     val correctSongName by remember { mutableStateOf("Doucement") } // TODO CHANGE
@@ -66,7 +67,8 @@ fun LyricsGuessScreen(
                     }
                 }
             },
-            gameViewModel = gameViewModel
+            gameViewModel = gameViewModel,
+            suggestions = suggestions
         )
     }
 }
