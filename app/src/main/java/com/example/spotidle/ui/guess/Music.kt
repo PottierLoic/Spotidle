@@ -29,11 +29,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.spotidle.spotifyApiManager.TrackManager
 import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.imageLoader
 import coil.request.ImageRequest
 import coil.size.Scale
+import coil.size.Size
 import com.example.spotidle.GameState
 import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.ui.guess.components.GuessSection
@@ -78,6 +82,31 @@ fun MusicGuessScreen(
         }
     }
 
+    Box{
+        if (gameViewModel.gameState == GameState.WIN) {
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://i.gifer.com/6SSp.gif")
+                    .size(Size.ORIGINAL)
+                    .crossfade(true)
+                    .build(),
+                imageLoader = LocalContext.current.imageLoader.newBuilder()
+                    .components {
+                        add(GifDecoder.Factory())
+                    }
+                    .build()
+            )
+            Image(
+                painter = painter,
+                contentDescription = "Victory GIF",
+                modifier = Modifier
+                    .size(800.dp)
+                    .align(Alignment.Center)
+                    .zIndex(45f),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
     SpotifightScaffold(navController = navController) {
         Box(
             modifier = Modifier

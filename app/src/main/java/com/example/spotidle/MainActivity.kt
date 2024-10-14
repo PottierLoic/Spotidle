@@ -223,11 +223,11 @@ fun MainScreen(
                     navController = navController,
                     disconnectSpotify = disconnectSpotify,
                     resetGame = {
+                        fetchLikedTracks()
                         musicGameViewModel.reset()
                         lyricsGameViewModel.reset()
                         albumGameViewModel.reset()
                         artistGameViewModel.reset()
-                        fetchLikedTracks()
                         navController.navigate("home")
                     },
                     musicViewModel = musicGameViewModel,

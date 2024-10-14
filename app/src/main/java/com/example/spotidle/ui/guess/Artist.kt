@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,12 +26,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.size.Size
 import com.example.spotidle.GameState
 import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.spotifyApiManager.ArtistManager
@@ -40,6 +47,7 @@ import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.round
 
 @Composable
 fun ArtistGuessScreen(
@@ -68,8 +76,10 @@ fun ArtistGuessScreen(
                 val pair: Pair<String, String> = trackManager.getArtistIdNameFromTrack(idTrack)
                 val artistId = pair.first
                 artistName = pair.second
-                oldestAlbumCoverUrl = albumManager.getAlbumCover(artistManager.getOldestAlbumId(artistId))
-                val popularSongPair: Pair<String, String> = artistManager.getAFamousTrackIdName(artistId)
+                oldestAlbumCoverUrl =
+                    albumManager.getAlbumCover(artistManager.getOldestAlbumId(artistId))
+                val popularSongPair: Pair<String, String> =
+                    artistManager.getAFamousTrackIdName(artistId)
                 popularSong = popularSongPair.second
                 musicalGenre.clear()
                 musicalGenre.addAll(artistManager.getGenres(artistId))
@@ -81,9 +91,33 @@ fun ArtistGuessScreen(
         }
     }
 
+    Box{
+        if (gameViewModel.gameState == GameState.WIN) {
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://i.gifer.com/6SSp.gif")
+                    .size(Size.ORIGINAL)
+                    .crossfade(true)
+                    .build(),
+                imageLoader = LocalContext.current.imageLoader.newBuilder()
+                    .components {
+                        add(GifDecoder.Factory())
+                    }
+                    .build()
+            )
+            Image(
+                painter = painter,
+                contentDescription = "Victory GIF",
+                modifier = Modifier
+                    .size(800.dp)
+                    .align(Alignment.Center)
+                    .zIndex(45f),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
     SpotifightScaffold(navController = navController) {
         Spacer(modifier = Modifier.height(16.dp))
-
         Box(
             modifier = Modifier
                 .size((context.resources.displayMetrics.widthPixels / 4).dp)

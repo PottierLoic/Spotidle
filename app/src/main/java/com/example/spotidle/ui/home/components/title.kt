@@ -31,7 +31,7 @@ fun SpotifightTitle(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Spotifight",
+            text = "Spotidle",
             color = Color(0xFF1ED760),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,

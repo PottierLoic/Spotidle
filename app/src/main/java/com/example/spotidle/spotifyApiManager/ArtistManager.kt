@@ -2,13 +2,18 @@ package com.example.spotidle.spotifyApiManager
 
 import android.util.Log
 import com.example.spotidle.MainActivity
-
+// la passer en viewmodel
+// elle doit etendre viewmodel
+// ArtistViewModel -> ViewModel
 class ArtistManager {
   private fun intYear(releaseDate: String): Int {
     return releaseDate.split("-")[0].toInt()
   }
 
     suspend fun getOldestAlbumId(artistId: String): String {
+        // doit appeler un ArtistRepository
+        // ensuite ArtistRepository, on a une data source "ArtistRemoteDataSource"
+        // dedans, on a plusieurs fonctions qui call l'objet API
         return try {
             val response = RetrofitInstance.api.getAlbums("Bearer ${MainActivity.TOKEN}", artistId)
             response.items.minByOrNull { intYear(it.release_date) }?.id ?: ""

@@ -117,7 +117,8 @@ fun AlbumGuessScreen(
                 contentDescription = "Album Cover",
                 modifier = Modifier
                     .blur(radius = blurAmount.dp)
-                    .align(Alignment.Center),
+                    .align(Alignment.Center)
+                    .fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         }

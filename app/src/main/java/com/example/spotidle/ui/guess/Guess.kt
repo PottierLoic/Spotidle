@@ -1,6 +1,7 @@
 package com.example.spotidle.ui.guess
 
 import GameViewModel
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,12 +20,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.size.Size
 import com.example.spotidle.GameState
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
@@ -41,6 +49,31 @@ fun LyricsGuessScreen(
     val correctSongName by remember { mutableStateOf("Doucement") } // TODO CHANGE
     val lyricsSnippet by remember { mutableStateOf("Chargement des paroles...") }
 
+    Box{
+        if (gameViewModel.gameState == GameState.WIN) {
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://i.gifer.com/6SSp.gif")
+                    .size(Size.ORIGINAL)
+                    .crossfade(true)
+                    .build(),
+                imageLoader = LocalContext.current.imageLoader.newBuilder()
+                    .components {
+                        add(GifDecoder.Factory())
+                    }
+                    .build()
+            )
+            Image(
+                painter = painter,
+                contentDescription = "Victory GIF",
+                modifier = Modifier
+                    .size(800.dp)
+                    .align(Alignment.Center)
+                    .zIndex(45f),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
     SpotifightScaffold(navController = navController) {
         Box(
             modifier = Modifier
