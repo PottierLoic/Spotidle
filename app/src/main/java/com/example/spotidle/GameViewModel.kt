@@ -10,4 +10,10 @@ class GameViewModel : ViewModel() {
     var attempts by mutableIntStateOf(0)
     var gameState by mutableStateOf(GameState.PLAYING)
     var guesses = mutableStateListOf<String>()
+
+    fun reset() {
+        attempts = 0
+        gameState = GameState.PLAYING
+        guesses.clear()
+    }
 }

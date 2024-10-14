@@ -46,6 +46,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     disconnectSpotify: () -> Unit,
+    resetGame: () -> Unit,
     musicViewModel: GameViewModel,
     lyricsViewModel: GameViewModel,
     albumViewModel: GameViewModel,
@@ -241,7 +242,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.size(100.dp))
                 Spacer(modifier = Modifier.size(10.dp))
                 Button(
-                    onClick = { disconnectSpotify() },
+                    onClick = { resetGame() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1DB954),
                         contentColor = Color.White

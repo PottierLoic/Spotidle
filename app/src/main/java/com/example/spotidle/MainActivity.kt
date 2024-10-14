@@ -73,6 +73,24 @@ class MainActivity : ComponentActivity() {
         editor.apply()
     }
 
+    private fun fetchLikedTracks() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val trackInfo: TrackInfo =  userManager.getLikedTracksIds()
+                val tracks: List<String> = trackInfo.ids
+                tracksSuggestions = trackInfo.names
+                albumsSuggestions = trackInfo.albums
+                artistsSuggestions = trackInfo.artists
+                if (tracks.size < 4) {
+                    throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
+                }
+                fourRandTracksId.value = tracks.shuffled().take(4)
+            } catch (e: Exception) {
+                Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         removeToken(this)
@@ -105,7 +123,8 @@ class MainActivity : ComponentActivity() {
                     fourRandTracksId = fourRandTracksId.value,
                     tracksSuggestions = tracksSuggestions,
                     albumsSuggestions = albumsSuggestions,
-                    artistsSuggestions = artistsSuggestions
+                    artistsSuggestions = artistsSuggestions,
+                    fetchLikedTracks = { fetchLikedTracks() }
                 )
             }
         }
@@ -125,24 +144,6 @@ class MainActivity : ComponentActivity() {
                 username.value = userManager.getUserName()
             } catch (e: Exception) {
                 Log.e("Spotify", "Failed to get user name: ${e.message}")
-            }
-        }
-    }
-
-    private fun fetchLikedTracks() {
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val trackInfo: TrackInfo =  userManager.getLikedTracksIds()
-                val tracks: List<String> = trackInfo.ids
-                tracksSuggestions = trackInfo.names
-                albumsSuggestions = trackInfo.albums
-                artistsSuggestions = trackInfo.artists
-                if (tracks.size < 4) {
-                    throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
-                }
-                fourRandTracksId.value = tracks.shuffled().take(4)
-            } catch (e: Exception) {
-                Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
             }
         }
     }
@@ -176,7 +177,8 @@ fun MainScreen(
     fourRandTracksId: List<String>,
     tracksSuggestions: List<String>,
     artistsSuggestions: List<String>,
-    albumsSuggestions: List<String>
+    albumsSuggestions: List<String>,
+    fetchLikedTracks: () -> Unit
 ) {
     val musicGameViewModel: GameViewModel = viewModel(key = "musicGameViewModel")
     val lyricsGameViewModel: GameViewModel = viewModel(key = "lyricsGameViewModel")
@@ -220,6 +222,14 @@ fun MainScreen(
                 HomeScreen(
                     navController = navController,
                     disconnectSpotify = disconnectSpotify,
+                    resetGame = {
+                        musicGameViewModel.reset()
+                        lyricsGameViewModel.reset()
+                        albumGameViewModel.reset()
+                        artistGameViewModel.reset()
+                        fetchLikedTracks()
+                        navController.navigate("home")
+                    },
                     musicViewModel = musicGameViewModel,
                     lyricsViewModel = lyricsGameViewModel,
                     albumViewModel = albumGameViewModel,
