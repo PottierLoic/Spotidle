@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,13 +60,15 @@ fun MusicGuessScreen(
     var isPlaying by remember { mutableStateOf(false) }
     var albumCoverUrl by remember { mutableStateOf("") }
 
-    CoroutineScope(Dispatchers.Main).launch {
-        try {
-            correctSongName = trackManager.getTitle(idTrack)
-            sampleUrl = trackManager.getTrackSample(idTrack)
-            albumCoverUrl = albumManager.getAlbumCover(trackManager.getAlbumIdNameFromTrack(trackId = idTrack).first)
-        } catch (e: Exception) {
-            Log.e("Spotify", "Failed to get title details: ${e.message}")
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                correctSongName = trackManager.getTitle(idTrack)
+                sampleUrl = trackManager.getTrackSample(idTrack)
+                albumCoverUrl = albumManager.getAlbumCover(trackManager.getAlbumIdNameFromTrack(trackId = idTrack).first)
+            } catch (e: Exception) {
+                Log.e("Spotify", "Failed to get title details: ${e.message}")
+            }
         }
     }
 

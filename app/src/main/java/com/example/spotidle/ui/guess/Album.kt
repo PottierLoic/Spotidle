@@ -20,14 +20,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.imageLoader
 import com.example.spotidle.spotifyApiManager.AlbumManager
 import com.example.spotidle.spotifyApiManager.TrackManager
 import coil.request.ImageRequest
 import coil.size.Scale
+import coil.size.Size
 import com.example.spotidle.GameState
+import com.example.spotidle.R
 import com.example.spotidle.ui.guess.components.GuessSection
 import com.example.spotidle.ui.guess.components.SpotifightScaffold
 import kotlinx.coroutines.CoroutineScope
@@ -48,32 +53,59 @@ fun AlbumGuessScreen(
     val context = LocalContext.current
     var correctAlbumName by remember { mutableStateOf("") }
     var coverImageUrl by remember { mutableStateOf("") }
-    var blurAmount by remember { mutableFloatStateOf(25f) }
+    var blurAmount by remember { mutableFloatStateOf(16f) }
 
     LaunchedEffect(gameViewModel.attempts, gameViewModel.gameState) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val pair: Pair<String, String> = trackManager.getAlbumIdNameFromTrack(idTrack)
+                correctAlbumName = pair.second
+                coverImageUrl = albumManager.getAlbumCover(pair.first)
+            } catch (e: Exception) {
+                Log.e("Spotify", "Failed to get album details: ${e.message}")
+            }
+        }
+
         blurAmount = when (gameViewModel.gameState) {
             GameState.WIN, GameState.LOOSE -> 0f
             GameState.PLAYING -> {
-                (25f - 5f * gameViewModel.attempts).coerceAtLeast(0f)
+                (16f - 4f * gameViewModel.attempts).coerceAtLeast(0f)
             }
         }
     }
-
-    CoroutineScope(Dispatchers.Main).launch {
-        try {
-            val pair: Pair<String, String> = trackManager.getAlbumIdNameFromTrack(idTrack)
-            correctAlbumName = pair.second
-            coverImageUrl = albumManager.getAlbumCover(pair.first)
-        } catch (e: Exception) {
-            Log.e("Spotify", "Failed to get album details: ${e.message}")
+    Box{
+        if (gameViewModel.gameState == GameState.WIN) {
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://i.gifer.com/6SSp.gif")
+                    .size(Size.ORIGINAL)
+                    .crossfade(true)
+                    .build(),
+                imageLoader = LocalContext.current.imageLoader.newBuilder()
+                    .components {
+                        add(GifDecoder.Factory())
+                    }
+                    .build()
+            )
+            Image(
+                painter = painter,
+                contentDescription = "Victory GIF",
+                modifier = Modifier
+                    .size(800.dp)
+                    .align(Alignment.Center)
+                    .zIndex(45f),
+                contentScale = ContentScale.Crop
+            )
         }
     }
 
     SpotifightScaffold(navController = navController) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .size((context.resources.displayMetrics.widthPixels / 4).dp)
+                .aspectRatio(1f)
+                .background(Color.Transparent)
         ) {
-            // Affichage de l'image de couverture floutée
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current).data(data = coverImageUrl)
@@ -85,51 +117,29 @@ fun AlbumGuessScreen(
                 contentDescription = "Album Cover",
                 modifier = Modifier
                     .blur(radius = blurAmount.dp)
-                    .fillMaxSize(),
+                    .align(Alignment.Center),
                 contentScale = ContentScale.Crop
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Si l'utilisateur gagne, afficher un GIF sur toute la page
-            if (gameViewModel.gameState == GameState.WIN) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data("https://yourgifurl.com/yourgif.gif") // URL du GIF
-                            .apply {
-                                crossfade(true)
-                                scale(Scale.FILL)
-                            }.build()
-                    ),
-                    contentDescription = "Victory GIF",
-                    modifier = Modifier
-                        .fillMaxSize() // Occupe toute la page
-                        .align(Alignment.Center),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            // Section de devinettes
-            GuessSection(
-                correctGuessName = correctAlbumName,
-                toGuess = "album",
-                onGuessSubmit = { guess ->
-                    if (guess.equals(correctAlbumName, ignoreCase = true)) {
-                        blurAmount = 0f
-                        gameViewModel.gameState = GameState.WIN
-                    } else {
-                        gameViewModel.attempts += 1
-                        blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
-                        if (gameViewModel.attempts >= 4) {
-                            blurAmount = 0f
-                            gameViewModel.gameState = GameState.LOOSE
-                        }
-                    }
-                },
-                gameViewModel = gameViewModel,
-                suggestions = suggestions
-            )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        GuessSection(
+            correctGuessName = correctAlbumName,
+            toGuess = "album",
+            onGuessSubmit = { guess ->
+                if (guess.equals(correctAlbumName, ignoreCase = true)) {
+                    blurAmount = 0f
+                    gameViewModel.gameState = GameState.WIN
+                } else {
+                    gameViewModel.attempts += 1
+                    blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
+                    if (gameViewModel.attempts >= 4) {
+                        blurAmount = 0f
+                        gameViewModel.gameState = GameState.LOOSE
+                    }
+                }
+            },
+            gameViewModel = gameViewModel,
+            suggestions = suggestions
+        )
     }
 }

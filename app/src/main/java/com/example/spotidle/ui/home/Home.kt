@@ -40,6 +40,7 @@ import com.example.spotidle.spotifyApiManager.UserManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.example.spotidle.R
 
 @Composable
 fun HomeScreen(
@@ -78,8 +79,7 @@ fun HomeScreen(
         ) {
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    // TODO : Find a better gif
-                    .data("https://media.tenor.com/t5DMW5PI8mgAAAAi/loading-green-loading.gif")
+                    .data(R.drawable.loading)
                     .size(Size.ORIGINAL)
                     .crossfade(true)
                     .build(),
