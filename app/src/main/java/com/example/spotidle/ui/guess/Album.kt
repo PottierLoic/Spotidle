@@ -71,11 +71,9 @@ fun AlbumGuessScreen(
 
     SpotifightScaffold(navController = navController) {
         Box(
-            modifier = Modifier
-                .size((context.resources.displayMetrics.widthPixels / 4).dp)
-                .aspectRatio(1f)
-                .background(Color.Transparent)
+            modifier = Modifier.fillMaxSize()
         ) {
+            // Affichage de l'image de couverture floutée
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current).data(data = coverImageUrl)
@@ -87,29 +85,51 @@ fun AlbumGuessScreen(
                 contentDescription = "Album Cover",
                 modifier = Modifier
                     .blur(radius = blurAmount.dp)
-                    .align(Alignment.Center),
+                    .fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        GuessSection(
-            correctGuessName = correctAlbumName,
-            toGuess = "album",
-            onGuessSubmit = { guess ->
-                if (guess.equals(correctAlbumName, ignoreCase = true)) {
-                    blurAmount = 0f
-                    gameViewModel.gameState = GameState.WIN
-                } else {
-                    gameViewModel.attempts += 1
-                    blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
-                    if (gameViewModel.attempts >= 4) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Si l'utilisateur gagne, afficher un GIF sur toute la page
+            if (gameViewModel.gameState == GameState.WIN) {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data("https://yourgifurl.com/yourgif.gif") // URL du GIF
+                            .apply {
+                                crossfade(true)
+                                scale(Scale.FILL)
+                            }.build()
+                    ),
+                    contentDescription = "Victory GIF",
+                    modifier = Modifier
+                        .fillMaxSize() // Occupe toute la page
+                        .align(Alignment.Center),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Section de devinettes
+            GuessSection(
+                correctGuessName = correctAlbumName,
+                toGuess = "album",
+                onGuessSubmit = { guess ->
+                    if (guess.equals(correctAlbumName, ignoreCase = true)) {
                         blurAmount = 0f
-                        gameViewModel.gameState = GameState.LOOSE
+                        gameViewModel.gameState = GameState.WIN
+                    } else {
+                        gameViewModel.attempts += 1
+                        blurAmount = (blurAmount - 5f).coerceAtLeast(0f)
+                        if (gameViewModel.attempts >= 4) {
+                            blurAmount = 0f
+                            gameViewModel.gameState = GameState.LOOSE
+                        }
                     }
-                }
-            },
-            gameViewModel = gameViewModel,
-            suggestions = suggestions
-        )
+                },
+                gameViewModel = gameViewModel,
+                suggestions = suggestions
+            )
+        }
     }
 }
