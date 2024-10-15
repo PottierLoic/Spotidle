@@ -33,10 +33,13 @@ import com.example.spotidle.spotifyApiManager.AuthManager
 import com.example.spotidle.spotifyApiManager.UserManager
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.activity.viewModels
 import com.example.spotidle.spotifyApiManager.Track
 import com.example.spotidle.spotifyApiManager.TrackInfo
 
 class MainActivity : ComponentActivity() {
+    private val mainViewModel: MainViewModel by viewModels()
+
     companion object {
         const val CLIENT_ID = "71cb703af64d40e889f5a274b3986da7"
         const val REDIRECT_URI = "spotidle://callback"
@@ -44,15 +47,8 @@ class MainActivity : ComponentActivity() {
         var TOKEN = ""
     }
     private var spotifyAppRemote: SpotifyAppRemote? = null
-    private var isSpotifyConnected = mutableStateOf(false)
-    private var username : MutableState<String> = mutableStateOf("")
     private var authManager: AuthManager = AuthManager(this)
     private var userManager: UserManager = UserManager()
-    private var fourRandTracksId: MutableState<List<String>> = mutableStateOf(emptyList())
-    private var tracksSuggestions: List<String> = emptyList()
-    private var albumsSuggestions: List<String> = emptyList()
-    private var artistsSuggestions: List<String> = emptyList()
-
 
     fun saveToken(context: Context, token: String) {
         val sharedPreferences: SharedPreferences = context.getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE)
@@ -78,13 +74,13 @@ class MainActivity : ComponentActivity() {
             try {
                 val trackInfo: TrackInfo =  userManager.getLikedTracksIds()
                 val tracks: List<String> = trackInfo.ids
-                tracksSuggestions = trackInfo.names
-                albumsSuggestions = trackInfo.albums
-                artistsSuggestions = trackInfo.artists
+                mainViewModel.tracksSuggestions = trackInfo.names
+                mainViewModel.albumsSuggestions = trackInfo.albums
+                mainViewModel.artistsSuggestions = trackInfo.artists
                 if (tracks.size < 4) {
                     throw IllegalArgumentException("Not enough tracks available: only ${tracks.size} tracks found.")
                 }
-                fourRandTracksId.value = tracks.shuffled().take(4)
+                mainViewModel.fourRandTracksId.value = tracks.shuffled().take(4)
             } catch (e: Exception) {
                 Log.e("Spotify", "Failed to fetch liked tracks: ${e.message}")
             }
@@ -97,7 +93,7 @@ class MainActivity : ComponentActivity() {
         val storedToken = getToken(this)
         if (storedToken != null) {
             TOKEN = storedToken
-            isSpotifyConnected.value = true
+            mainViewModel.isSpotifyConnected.value = true
             fetchLikedTracks()
         }
         setContent {
@@ -107,7 +103,7 @@ class MainActivity : ComponentActivity() {
                         authManager.connectSpotify(
                             onSuccess = { remote ->
                                 spotifyAppRemote = remote
-                                isSpotifyConnected.value = true
+                                mainViewModel.isSpotifyConnected.value = true
                             },
                             onFailure = { throwable ->
                                 Log.e("MainActivity", "Failed to connect: ${throwable.message}")
@@ -115,15 +111,15 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     disconnectSpotify = {
-                        authManager.disconnectSpotify(spotifyAppRemote, isSpotifyConnected)
+                        authManager.disconnectSpotify(spotifyAppRemote, mainViewModel.isSpotifyConnected)
                         removeToken(this)
-                        isSpotifyConnected.value = false
+                        mainViewModel.isSpotifyConnected.value = false
                     },
-                    isSpotifyConnected = isSpotifyConnected.value,
-                    fourRandTracksId = fourRandTracksId.value,
-                    tracksSuggestions = tracksSuggestions,
-                    albumsSuggestions = albumsSuggestions,
-                    artistsSuggestions = artistsSuggestions,
+                    isSpotifyConnected = mainViewModel.isSpotifyConnected.value,
+                    fourRandTracksId = mainViewModel.fourRandTracksId.value,
+                    tracksSuggestions = mainViewModel.tracksSuggestions,
+                    albumsSuggestions = mainViewModel.albumsSuggestions,
+                    artistsSuggestions = mainViewModel.artistsSuggestions,
                     fetchLikedTracks = { fetchLikedTracks() }
                 )
             }
@@ -141,7 +137,7 @@ class MainActivity : ComponentActivity() {
     private fun setUserName () {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                username.value = userManager.getUserName()
+                mainViewModel.username.value = userManager.getUserName()
             } catch (e: Exception) {
                 Log.e("Spotify", "Failed to get user name: ${e.message}")
             }
@@ -158,7 +154,7 @@ class MainActivity : ComponentActivity() {
             onSuccess = { token ->
                 TOKEN = token
                 saveToken(this, token)
-                isSpotifyConnected.value = true
+                mainViewModel.isSpotifyConnected.value = true
                 setUserName()
                 fetchLikedTracks()
             },
