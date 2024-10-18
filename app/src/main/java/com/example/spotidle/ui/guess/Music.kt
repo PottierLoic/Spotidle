@@ -58,7 +58,7 @@ fun MusicGuessScreen(
     val trackManager = TrackManager()
     val albumManager = AlbumManager()
     var correctSongName by remember { mutableStateOf("") }
-    var sampleUrl: String? = null
+    var sampleUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
